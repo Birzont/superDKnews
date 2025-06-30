@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Building2 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 export default function CreateOrgPage() {
   const [formData, setFormData] = useState({
@@ -12,6 +14,23 @@ export default function CreateOrgPage() {
     ideology: 5,
     logoUrl: ''
   })
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data } = await supabase.auth.getUser()
+      if (data.user?.email === 'herry0515@naver.com') {
+        setIsAdmin(true)
+      } else {
+        setIsAdmin(false)
+        router.replace('/')
+      }
+    }
+    checkAdmin()
+  }, [router])
+
+  if (isAdmin === null) return null
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Check, Plus, X, Save } from 'lucide-react'
 import SideNav from '../components/SideNav'
+import { useRouter } from 'next/navigation'
 
 interface NewsArticle {
   newspaper_post_id: string
@@ -34,6 +35,21 @@ export default function AddPostPage() {
   const [summaryDescription, setSummaryDescription] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data.user?.email === 'herry0515@naver.com') {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+        router.replace('/');
+      }
+    };
+    checkAdmin();
+  }, [router]);
 
   useEffect(() => {
     fetchArticles()
@@ -116,6 +132,8 @@ export default function AddPostPage() {
   })
 
   const categories = Array.from(new Set(articles.map(a => a.category).filter(Boolean)))
+
+  if (isAdmin === null) return null;
 
   if (loading) {
     return (

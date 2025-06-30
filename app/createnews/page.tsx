@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Upload } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 interface MediaOutlet {
   id: string
@@ -28,6 +29,8 @@ export default function CreateNewsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [mediaOutlets, setMediaOutlets] = useState<MediaOutlet[]>([])
   const [isLoadingOutlets, setIsLoadingOutlets] = useState(true)
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const router = useRouter()
 
   // 미디어 아웃렛 목록 가져오기
   useEffect(() => {
@@ -52,6 +55,19 @@ export default function CreateNewsPage() {
 
     fetchMediaOutlets()
   }, [])
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data.user?.email === 'herry0515@naver.com') {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+        router.replace('/');
+      }
+    };
+    checkAdmin();
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -119,6 +135,8 @@ export default function CreateNewsPage() {
       return mediaUrl
     }
   }
+
+  if (isAdmin === null) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">

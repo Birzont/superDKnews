@@ -3,9 +3,26 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, FileText, Building2, Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { supabase } from '../../lib/supabase'
 
 export default function SideNav() {
   const pathname = usePathname()
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data } = await supabase.auth.getUser()
+      setIsAdmin(data.user?.email === 'herry0515@naver.com')
+    }
+    checkAdmin()
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      checkAdmin()
+    })
+    return () => {
+      listener?.subscription.unsubscribe()
+    }
+  }, [])
 
   const navItems = [
     {
@@ -13,21 +30,23 @@ export default function SideNav() {
       href: '/',
       icon: Home,
     },
-    {
-      name: 'Create News',
-      href: '/createnews',
-      icon: FileText,
-    },
-    {
-      name: 'Create Org',
-      href: '/createorg',
-      icon: Building2,
-    },
-    {
-      name: 'Add Post',
-      href: '/addpost',
-      icon: Plus,
-    },
+    ...(isAdmin ? [
+      {
+        name: 'Create News',
+        href: '/createnews',
+        icon: FileText,
+      },
+      {
+        name: 'Create Org',
+        href: '/createorg',
+        icon: Building2,
+      },
+      {
+        name: 'Add Post',
+        href: '/addpost',
+        icon: Plus,
+      },
+    ] : [])
   ]
 
   return (
@@ -58,14 +77,6 @@ export default function SideNav() {
           )
         })}
       </nav>
-      <div className="mt-8 flex flex-col space-y-2">
-        <Link href="/login">
-          <button className="w-full py-2 px-4 rounded bg-blue-500 text-white font-semibold hover:bg-blue-600 transition">로그인</button>
-        </Link>
-        <Link href="/signup">
-          <button className="w-full py-2 px-4 rounded bg-green-500 text-white font-semibold hover:bg-green-600 transition">회원가입</button>
-        </Link>
-      </div>
     </div>
   )
 } 
