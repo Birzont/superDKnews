@@ -42,9 +42,8 @@ export default function CreateOrgPage() {
         <div className="bg-white rounded-12 shadow-sm p-8">
           <div className="flex items-center mb-8">
             <Building2 size={32} className="text-blue-600 mr-3" />
-            <h1 className="text-3xl font-bold text-gray-900">새 조직 생성</h1>
+            <h1 className="text-3xl font-bold text-gray-900">새 언론사 생성</h1>
           </div>
-
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">

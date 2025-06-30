@@ -58,6 +58,14 @@ export default function SideNav() {
           )
         })}
       </nav>
+      <div className="mt-8 flex flex-col space-y-2">
+        <Link href="/login">
+          <button className="w-full py-2 px-4 rounded bg-blue-500 text-white font-semibold hover:bg-blue-600 transition">로그인</button>
+        </Link>
+        <Link href="/signup">
+          <button className="w-full py-2 px-4 rounded bg-green-500 text-white font-semibold hover:bg-green-600 transition">회원가입</button>
+        </Link>
+      </div>
     </div>
   )
 } 

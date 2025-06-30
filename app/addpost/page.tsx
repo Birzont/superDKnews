@@ -83,13 +83,11 @@ export default function AddPostPage() {
 
     setSaving(true)
     try {
-      const homepageArticle: Omit<HomepageArticle, 'news_post_id'> = {
+      const homepageArticle = {
         article_count: selectedArticles.length,
         included_article_ids: selectedArticles.map(a => a.newspaper_post_id).join(','),
         included_article_ai_summary_titles: selectedArticles.map(a => a.news_post_title).join('|'),
         included_article_ai_summary_descriptions: selectedArticles.map(a => a.news_post_description).join('|'),
-        ai_summary_title: summaryTitle.trim(),
-        ai_summary_description: summaryDescription.trim(),
       }
 
       const { error } = await supabase
