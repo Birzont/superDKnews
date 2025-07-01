@@ -36,6 +36,7 @@ export default function AddPostPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
+  const [homepageCategory, setHomepageCategory] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -97,6 +98,11 @@ export default function AddPostPage() {
       return
     }
 
+    if (!homepageCategory) {
+      alert('카테고리를 선택해주세요.')
+      return
+    }
+
     setSaving(true)
     try {
       const homepageArticle = {
@@ -104,6 +110,7 @@ export default function AddPostPage() {
         included_article_ids: selectedArticles.map(a => a.newspaper_post_id).join(','),
         included_article_ai_summary_titles: selectedArticles.map(a => a.news_post_title).join('|'),
         included_article_ai_summary_descriptions: selectedArticles.map(a => a.news_post_description).join('|'),
+        category: homepageCategory,
       }
 
       const { error } = await supabase
@@ -116,6 +123,7 @@ export default function AddPostPage() {
       setSelectedArticles([])
       setSummaryTitle('')
       setSummaryDescription('')
+      setHomepageCategory('')
     } catch (error) {
       console.error('저장 중 오류:', error)
       alert('저장 중 오류가 발생했습니다.')
@@ -131,7 +139,17 @@ export default function AddPostPage() {
     return matchesSearch && matchesCategory
   })
 
-  const categories = Array.from(new Set(articles.map(a => a.category).filter(Boolean)))
+  // 고정 카테고리 목록
+  const fixedCategories = [
+    '정치',
+    '경제',
+    '사회',
+    '국제',
+    '문화',
+    '스포츠',
+    'IT/과학',
+    '생활/건강',
+  ];
 
   if (isAdmin === null) return null;
 
@@ -172,8 +190,8 @@ export default function AddPostPage() {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">모든 카테고리</option>
-                  {categories.map(category => (
-                    <option key={category} value={category || ''}>{category}</option>
+                  {fixedCategories.map(category => (
+                    <option key={category} value={category}>{category}</option>
                   ))}
                 </select>
               </div>
@@ -279,6 +297,22 @@ export default function AddPostPage() {
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    카테고리
+                  </label>
+                  <select
+                    value={homepageCategory}
+                    onChange={e => setHomepageCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">카테고리를 선택하세요</option>
+                    {fixedCategories.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <button

@@ -20,88 +20,32 @@ interface ToastMessage {
   type: 'success' | 'error' | 'info'
 }
 
-export default function RealTimeNewsGrid() {
+interface RealTimeNewsGridProps {
+  selectedCategory: string
+}
+
+export default function RealTimeNewsGrid({ selectedCategory }: RealTimeNewsGridProps) {
   const [articles, setArticles] = useState<HomepageArticle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [toasts, setToasts] = useState<ToastMessage[]>([])
 
-  // 초기 데이터 로드
   useEffect(() => {
     fetchArticles()
-  }, [])
-
-  // 실시간 구독 설정
-  useEffect(() => {
-    const channel = supabase
-      .channel('homepage_articles_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'homepage_articles'
-        },
-        (payload) => {
-          console.log('Real-time change detected:', payload)
-          
-          // 토스트 알림 추가
-          const toastId = Date.now().toString()
-          let message = ''
-          let type: 'success' | 'error' | 'info' = 'info'
-          
-          if (payload.eventType === 'INSERT') {
-            message = '새로운 뉴스가 추가되었습니다!'
-            type = 'success'
-            setArticles(prev => [...prev, payload.new as HomepageArticle])
-          } else if (payload.eventType === 'UPDATE') {
-            message = '뉴스가 업데이트되었습니다!'
-            type = 'info'
-            setArticles(prev => 
-              prev.map(article => 
-                article.news_post_id === payload.new.news_post_id 
-                  ? payload.new as HomepageArticle 
-                  : article
-              )
-            )
-          } else if (payload.eventType === 'DELETE') {
-            message = '뉴스가 삭제되었습니다!'
-            type = 'error'
-            setArticles(prev => 
-              prev.filter(article => article.news_post_id !== payload.old.news_post_id)
-            )
-          }
-          
-          setToasts(prev => [...prev, { id: toastId, message, type }])
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [])
+  }, [selectedCategory])
 
   const fetchArticles = async () => {
     try {
       setLoading(true)
       setError(null)
-
-      const { data, error } = await supabase
-        .from('homepage_articles')
-        .select('*')
-        .order('news_post_id', { ascending: true })
-
+      let query = supabase.from('homepage_articles').select('*').eq('category', selectedCategory)
+      const { data, error } = await query
       if (error) {
-        console.error('Error fetching articles:', error)
         setError('데이터를 불러오는 중 오류가 발생했습니다.')
         return
       }
-
-      console.log('Fetched articles:', data)
       setArticles(data || [])
     } catch (err) {
-      console.error('Error fetching articles:', err)
       setError('데이터를 불러오는 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
