@@ -96,9 +96,9 @@ export default async function PostPage({ params }: PostPageProps) {
   const conservativeArticles = newspaperArticles.filter(a => a.news_post_ideology && a.news_post_ideology > 5)
 
   const getIdeologyColor = (ideology: number) => {
-    if (ideology <= 3) return 'bg-red-100 text-red-800'
+    if (ideology <= 3) return 'bg-blue-100 text-blue-800'
     if (ideology <= 5) return 'bg-yellow-100 text-yellow-800'
-    return 'bg-blue-100 text-blue-800'
+    return 'bg-red-100 text-red-800'
   }
 
   const getIdeologyText = (ideology: number) => {

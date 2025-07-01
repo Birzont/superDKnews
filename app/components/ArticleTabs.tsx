@@ -21,9 +21,9 @@ interface ArticleTabsProps {
 }
 
 const tabList = [
-  { key: "progressive", label: "Left", color: "text-red-700" },
+  { key: "progressive", label: "Left", color: "text-blue-700" },
   { key: "moderate", label: "Center", color: "text-yellow-700" },
-  { key: "conservative", label: "Right", color: "text-blue-700" },
+  { key: "conservative", label: "Right", color: "text-red-700" },
 ];
 
 export default function ArticleTabs({ progressive, moderate, conservative, defaultImageUrl }: ArticleTabsProps) {
@@ -36,9 +36,9 @@ export default function ArticleTabs({ progressive, moderate, conservative, defau
   };
 
   const getIdeologyColor = (ideology: number) => {
-    if (ideology <= 3) return "bg-red-100 text-red-800";
+    if (ideology <= 3) return "bg-blue-100 text-blue-800";
     if (ideology <= 5) return "bg-yellow-100 text-yellow-800";
-    return "bg-blue-100 text-blue-800";
+    return "bg-red-100 text-red-800";
   };
 
   const getIdeologyText = (ideology: number) => {

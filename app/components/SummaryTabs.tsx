@@ -8,9 +8,9 @@ interface SummaryTabsProps {
 }
 
 const tabList = [
-  { key: "left", label: "Left", color: "text-red-700" },
+  { key: "left", label: "Left", color: "text-blue-700" },
   { key: "center", label: "Center", color: "text-yellow-700" },
-  { key: "right", label: "Right", color: "text-blue-700" },
+  { key: "right", label: "Right", color: "text-red-700" },
 ];
 
 export default function SummaryTabs({ left, center, right }: SummaryTabsProps) {

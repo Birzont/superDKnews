@@ -31,9 +31,9 @@ export default function IdeologyStats({ articles }: IdeologyStatsProps) {
 
   // 전체 성향에 따른 색상 결정
   const getOverallColor = (avg: number) => {
-    if (avg <= 3) return 'from-red-500 to-red-700'
+    if (avg <= 3) return 'from-blue-800 to-blue-900'
     if (avg <= 5) return 'from-gray-500 to-gray-700'
-    return 'from-blue-800 to-blue-900'
+    return 'from-red-500 to-red-700'
   }
 
   const getOverallText = (avg: number) => {
@@ -62,7 +62,7 @@ export default function IdeologyStats({ articles }: IdeologyStatsProps) {
         {/* 진보 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-red-600 rounded-full"></div>
+            <div className="w-3 h-3 bg-gradient-to-r from-blue-700 to-blue-900 rounded-full"></div>
             <span className="text-sm text-gray-700">진보</span>
           </div>
           <div className="flex items-center space-x-2">
@@ -86,7 +86,7 @@ export default function IdeologyStats({ articles }: IdeologyStatsProps) {
         {/* 보수 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-gradient-to-r from-blue-700 to-blue-900 rounded-full"></div>
+            <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-red-600 rounded-full"></div>
             <span className="text-sm text-gray-700">보수</span>
           </div>
           <div className="flex items-center space-x-2">
@@ -102,7 +102,7 @@ export default function IdeologyStats({ articles }: IdeologyStatsProps) {
         <div className="flex h-3 bg-gray-200 rounded-full overflow-hidden">
           {stats.progressive > 0 && (
             <div 
-              className="bg-gradient-to-r from-red-400 to-red-600"
+              className="bg-gradient-to-r from-blue-700 to-blue-900"
               style={{ width: `${(stats.progressive / total) * 100}%` }}
             ></div>
           )}
@@ -114,7 +114,7 @@ export default function IdeologyStats({ articles }: IdeologyStatsProps) {
           )}
           {stats.conservative > 0 && (
             <div 
-              className="bg-gradient-to-r from-blue-700 to-blue-900"
+              className="bg-gradient-to-r from-red-400 to-red-600"
               style={{ width: `${(stats.conservative / total) * 100}%` }}
             ></div>
           )}
