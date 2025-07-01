@@ -41,6 +41,7 @@ export default function AddPostPage() {
   const [categoryFilter, setCategoryFilter] = useState('')
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [homepageCategory, setHomepageCategory] = useState('')
+  const [homepageImageUrl, setHomepageImageUrl] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -107,6 +108,11 @@ export default function AddPostPage() {
       return
     }
 
+    if (!homepageImageUrl.trim()) {
+      alert('이미지 URL을 입력해주세요.')
+      return
+    }
+
     setSaving(true)
     try {
       const homepageArticle = {
@@ -117,6 +123,7 @@ export default function AddPostPage() {
         included_article_ai_summary_descriptions_left: summaryDescriptionLeft,
         included_article_ai_summary_descriptions_center: summaryDescriptionCenter,
         category: homepageCategory,
+        imageurl: homepageImageUrl,
       }
 
       const { error } = await supabase
@@ -132,6 +139,7 @@ export default function AddPostPage() {
       setSummaryDescriptionLeft('')
       setSummaryDescriptionCenter('')
       setHomepageCategory('')
+      setHomepageImageUrl('')
     } catch (error) {
       console.error('저장 중 오류:', error)
       alert('저장 중 오류가 발생했습니다.')
@@ -345,6 +353,19 @@ export default function AddPostPage() {
                       <option key={category} value={category}>{category}</option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    이미지 URL
+                  </label>
+                  <input
+                    type="text"
+                    value={homepageImageUrl}
+                    onChange={e => setHomepageImageUrl(e.target.value)}
+                    placeholder="대표 이미지 URL을 입력하세요"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
                 </div>
 
                 <button
