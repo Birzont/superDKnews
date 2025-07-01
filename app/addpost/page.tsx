@@ -21,7 +21,9 @@ interface HomepageArticle {
   article_count: number
   included_article_ids: string
   included_article_ai_summary_titles: string
-  included_article_ai_summary_descriptions: string
+  included_article_ai_summary_descriptions_right: string
+  included_article_ai_summary_descriptions_left: string
+  included_article_ai_summary_descriptions_center: string
   ai_summary_title: string
   ai_summary_description: string
 }
@@ -32,7 +34,9 @@ export default function AddPostPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [summaryTitle, setSummaryTitle] = useState('')
-  const [summaryDescription, setSummaryDescription] = useState('')
+  const [summaryDescriptionRight, setSummaryDescriptionRight] = useState('')
+  const [summaryDescriptionLeft, setSummaryDescriptionLeft] = useState('')
+  const [summaryDescriptionCenter, setSummaryDescriptionCenter] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
@@ -93,8 +97,8 @@ export default function AddPostPage() {
       return
     }
 
-    if (!summaryTitle.trim() || !summaryDescription.trim()) {
-      alert('요약 제목과 설명을 입력해주세요.')
+    if (!summaryTitle.trim() || !summaryDescriptionRight.trim() || !summaryDescriptionLeft.trim() || !summaryDescriptionCenter.trim()) {
+      alert('요약 제목과 모든 성향별 설명을 입력해주세요.')
       return
     }
 
@@ -109,7 +113,9 @@ export default function AddPostPage() {
         article_count: selectedArticles.length,
         included_article_ids: selectedArticles.map(a => a.newspaper_post_id).join(','),
         included_article_ai_summary_titles: selectedArticles.map(a => a.news_post_title).join('|'),
-        included_article_ai_summary_descriptions: selectedArticles.map(a => a.news_post_description).join('|'),
+        included_article_ai_summary_descriptions_right: summaryDescriptionRight,
+        included_article_ai_summary_descriptions_left: summaryDescriptionLeft,
+        included_article_ai_summary_descriptions_center: summaryDescriptionCenter,
         category: homepageCategory,
       }
 
@@ -122,7 +128,9 @@ export default function AddPostPage() {
       alert('성공적으로 저장되었습니다!')
       setSelectedArticles([])
       setSummaryTitle('')
-      setSummaryDescription('')
+      setSummaryDescriptionRight('')
+      setSummaryDescriptionLeft('')
+      setSummaryDescriptionCenter('')
       setHomepageCategory('')
     } catch (error) {
       console.error('저장 중 오류:', error)
@@ -288,13 +296,37 @@ export default function AddPostPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    요약 설명
+                    요약 설명 (보수)
                   </label>
                   <textarea
-                    value={summaryDescription}
-                    onChange={(e) => setSummaryDescription(e.target.value)}
-                    placeholder="요약 설명을 입력하세요"
-                    rows={4}
+                    value={summaryDescriptionRight}
+                    onChange={(e) => setSummaryDescriptionRight(e.target.value)}
+                    placeholder="요약된 보수성향 기사 설명을 입력하세요"
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    요약 설명 (진보)
+                  </label>
+                  <textarea
+                    value={summaryDescriptionLeft}
+                    onChange={(e) => setSummaryDescriptionLeft(e.target.value)}
+                    placeholder="요약된 진보성향 기사 설명을 입력하세요"
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    요약 설명 (중도)
+                  </label>
+                  <textarea
+                    value={summaryDescriptionCenter}
+                    onChange={(e) => setSummaryDescriptionCenter(e.target.value)}
+                    placeholder="요약된 중도성향 기사 설명을 입력하세요"
+                    rows={2}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>

@@ -5,6 +5,8 @@ import { supabase } from '../../../lib/supabase'
 import SafeImage from '../../components/SafeImage'
 import RealTimeData from '../../components/RealTimeData'
 import IdeologyStats from '../../components/IdeologyStats'
+import SummaryTabs from '../../components/SummaryTabs'
+import ArticleTabs from '../../components/ArticleTabs'
 
 // 실시간 데이터 업데이트를 위한 설정
 export const revalidate = 0 // 매번 새로운 데이터를 가져옴
@@ -174,11 +176,12 @@ export default async function PostPage({ params }: PostPageProps) {
                   })}
                 </div>
 
-                <div className="prose max-w-none">
-                  <p className="text-lg text-gray-700 leading-relaxed mb-8">
-                    {summaryArticle.included_article_ai_summary_descriptions || '설명 없음'}
-                  </p>
-                </div>
+                {/* 요약 설명을 탭으로 보여주기 */}
+                <SummaryTabs
+                  left={summaryArticle.included_article_ai_summary_descriptions_left}
+                  center={summaryArticle.included_article_ai_summary_descriptions_center}
+                  right={summaryArticle.included_article_ai_summary_descriptions_right}
+                />
               </div>
             </article>
 
@@ -193,190 +196,14 @@ export default async function PostPage({ params }: PostPageProps) {
                     이 요약에 포함된 개별 뉴스 기사들을 확인하세요.
                   </p>
                 </div>
-
-                {/* 진보 그룹 */}
-                {progressiveArticles.length > 0 && (
-                  <div className="p-8">
-                    <h3 className="text-xl font-bold text-red-700 mb-4">진보</h3>
-                    <div className="divide-y divide-gray-200">
-                      {progressiveArticles.map((article) => (
-                        <div key={article.newspaper_post_id} className="p-8 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-start space-x-6">
-                            <div className="flex-shrink-0">
-                              <div className="relative w-24 h-24 bg-gray-100 rounded-lg overflow-hidden">
-                                <SafeImage
-                                  src={article.image_url && isValidImageUrl(article.image_url) ? article.image_url : defaultImageUrl}
-                                  alt={article.news_post_title}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                                  {article.category || '일반'}
-                                </span>
-                                <span className={`text-sm font-medium px-3 py-1 rounded-full ${getIdeologyColor(article.news_post_ideology)}`}>
-                                  {getIdeologyText(article.news_post_ideology)}
-                                </span>
-                              </div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                                {article.news_post_title}
-                              </h3>
-                              <p className="text-gray-600 text-sm mb-3 line-clamp-3">
-                                {article.news_post_description}
-                              </p>
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">
-                                  {article.created_at && new Date(article.created_at).toLocaleDateString('ko-KR', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </span>
-                                {article.news_post_url && (
-                                  <a
-                                    href={article.news_post_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                  >
-                                    원문 보기 →
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {/* 중도 그룹 */}
-                {moderateArticles.length > 0 && (
-                  <div className="p-8">
-                    <h3 className="text-xl font-bold text-yellow-700 mb-4">중도</h3>
-                    <div className="divide-y divide-gray-200">
-                      {moderateArticles.map((article) => (
-                        <div key={article.newspaper_post_id} className="p-8 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-start space-x-6">
-                            <div className="flex-shrink-0">
-                              <div className="relative w-24 h-24 bg-gray-100 rounded-lg overflow-hidden">
-                                <SafeImage
-                                  src={article.image_url && isValidImageUrl(article.image_url) ? article.image_url : defaultImageUrl}
-                                  alt={article.news_post_title}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                                  {article.category || '일반'}
-                                </span>
-                                <span className={`text-sm font-medium px-3 py-1 rounded-full ${getIdeologyColor(article.news_post_ideology)}`}>
-                                  {getIdeologyText(article.news_post_ideology)}
-                                </span>
-                              </div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                                {article.news_post_title}
-                              </h3>
-                              <p className="text-gray-600 text-sm mb-3 line-clamp-3">
-                                {article.news_post_description}
-                              </p>
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">
-                                  {article.created_at && new Date(article.created_at).toLocaleDateString('ko-KR', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </span>
-                                {article.news_post_url && (
-                                  <a
-                                    href={article.news_post_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                  >
-                                    원문 보기 →
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {/* 보수 그룹 */}
-                {conservativeArticles.length > 0 && (
-                  <div className="p-8">
-                    <h3 className="text-xl font-bold text-blue-700 mb-4">보수</h3>
-                    <div className="divide-y divide-gray-200">
-                      {conservativeArticles.map((article) => (
-                        <div key={article.newspaper_post_id} className="p-8 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-start space-x-6">
-                            <div className="flex-shrink-0">
-                              <div className="relative w-24 h-24 bg-gray-100 rounded-lg overflow-hidden">
-                                <SafeImage
-                                  src={article.image_url && isValidImageUrl(article.image_url) ? article.image_url : defaultImageUrl}
-                                  alt={article.news_post_title}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                                  {article.category || '일반'}
-                                </span>
-                                <span className={`text-sm font-medium px-3 py-1 rounded-full ${getIdeologyColor(article.news_post_ideology)}`}>
-                                  {getIdeologyText(article.news_post_ideology)}
-                                </span>
-                              </div>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                                {article.news_post_title}
-                              </h3>
-                              <p className="text-gray-600 text-sm mb-3 line-clamp-3">
-                                {article.news_post_description}
-                              </p>
-                              <div className="flex items-center justify-between">
-                                <span className="text-xs text-gray-500">
-                                  {article.created_at && new Date(article.created_at).toLocaleDateString('ko-KR', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                </span>
-                                {article.news_post_url && (
-                                  <a
-                                    href={article.news_post_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                                  >
-                                    원문 보기 →
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <div className="p-8">
+                  <ArticleTabs
+                    progressive={progressiveArticles}
+                    moderate={moderateArticles}
+                    conservative={conservativeArticles}
+                    defaultImageUrl={defaultImageUrl}
+                  />
+                </div>
               </div>
             )}
 
