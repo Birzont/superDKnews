@@ -42,6 +42,7 @@ export default function AddPostPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null)
   const [homepageCategory, setHomepageCategory] = useState('')
   const [homepageImageUrl, setHomepageImageUrl] = useState('')
+  const [majorCatN, setMajorCatN] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -61,12 +62,27 @@ export default function AddPostPage() {
     fetchArticles()
   }, [])
 
+  useEffect(() => {
+    fetchArticles()
+    // eslint-disable-next-line
+  }, [majorCatN, categoryFilter])
+
   const fetchArticles = async () => {
+    setLoading(true)
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('newspaper_articles')
         .select('*')
         .order('created_at', { ascending: false })
+
+      if (majorCatN) {
+        query = query.eq('major_cat_n', majorCatN)
+      }
+      if (categoryFilter) {
+        query = query.eq('category', categoryFilter)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
       setArticles(data || [])
@@ -191,6 +207,18 @@ export default function AddPostPage() {
           <div className="w-2/3 p-6 overflow-y-auto">
             <div className="mb-6">
               <div className="flex gap-4 mb-4">
+                <div>
+                  <select
+                    value={majorCatN}
+                    onChange={e => setMajorCatN(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mr-2"
+                  >
+                    <option value="">전체 Major Cat</option>
+                    {[...Array(10)].map((_, i) => (
+                      <option key={i + 1} value={i + 1}>{i + 1}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex-1">
                   <input
                     type="text"
