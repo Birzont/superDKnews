@@ -134,7 +134,7 @@ export default function AddPostPage() {
       const homepageArticle = {
         article_count: selectedArticles.length,
         included_article_ids: selectedArticles.map(a => a.newspaper_post_id).join(','),
-        included_article_ai_summary_titles: selectedArticles.map(a => a.news_post_title).join('|'),
+        included_article_ai_summary_titles: summaryTitle,
         included_article_ai_summary_descriptions_right: summaryDescriptionRight,
         included_article_ai_summary_descriptions_left: summaryDescriptionLeft,
         included_article_ai_summary_descriptions_center: summaryDescriptionCenter,
