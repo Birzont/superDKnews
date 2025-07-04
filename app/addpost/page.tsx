@@ -13,6 +13,7 @@ interface NewsArticle {
   news_post_url: string
   image_url: string | null
   category: string | null
+  major_cat_n: number | null
   created_at: string
 }
 
@@ -66,6 +67,21 @@ export default function AddPostPage() {
     fetchArticles()
     // eslint-disable-next-line
   }, [majorCatN, categoryFilter])
+
+  // major cat이나 카테고리가 변경될 때 해당하는 기사들을 자동으로 선택
+  useEffect(() => {
+    if (majorCatN || categoryFilter) {
+      const filteredArticles = articles.filter(article => {
+        const matchesMajorCat = !majorCatN || article.major_cat_n === parseInt(majorCatN)
+        const matchesCategory = !categoryFilter || article.category === categoryFilter
+        return matchesMajorCat && matchesCategory
+      })
+      setSelectedArticles(filteredArticles)
+    } else {
+      // 필터가 없으면 선택 해제
+      setSelectedArticles([])
+    }
+  }, [majorCatN, categoryFilter, articles])
 
   const fetchArticles = async () => {
     setLoading(true)
@@ -238,6 +254,24 @@ export default function AddPostPage() {
                     <option key={category} value={category}>{category}</option>
                   ))}
                 </select>
+              </div>
+              
+              {/* 모두 포함 버튼 */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setSelectedArticles(filteredArticles)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  모두 포함
+                </button>
+                <button
+                  onClick={() => setSelectedArticles([])}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  모두 해제
+                </button>
               </div>
             </div>
 
