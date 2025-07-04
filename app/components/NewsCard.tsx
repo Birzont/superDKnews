@@ -12,6 +12,15 @@ interface NewsCardProps {
   category: string
   ideology: number
   createdAt: string
+  ideologyStats?: {
+    progressive: number;
+    moderate: number;
+    conservative: number;
+    total: number;
+    progressivePercent: number;
+    moderatePercent: number;
+    conservativePercent: number;
+  }
 }
 
 export default function NewsCard({
@@ -22,6 +31,7 @@ export default function NewsCard({
   category,
   ideology,
   createdAt,
+  ideologyStats,
 }: NewsCardProps) {
   const [imageError, setImageError] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
@@ -76,7 +86,7 @@ export default function NewsCard({
           />
         </div>
         
-        <div className="p-6">
+        <div className="p-6 pb-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
               {category}
@@ -94,10 +104,25 @@ export default function NewsCard({
             {description}
           </p>
           
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-500 mb-2">
             {new Date(createdAt).toLocaleDateString('ko-KR')}
           </div>
         </div>
+        {/* 성향 분포 바 및 비율 표시 */}
+        {ideologyStats && ideologyStats.total > 0 && (
+          <div className="px-6 pb-4">
+            <div className="flex items-center justify-between text-xs font-semibold mb-1">
+              <span className="text-blue-700">진보 {ideologyStats.progressivePercent}%</span>
+              <span className="text-gray-700">중도 {ideologyStats.moderatePercent}%</span>
+              <span className="text-red-700">보수 {ideologyStats.conservativePercent}%</span>
+            </div>
+            <div className="flex h-3 w-full rounded overflow-hidden">
+              <div style={{width: `${ideologyStats.progressivePercent}%`}} className="bg-blue-500" />
+              <div style={{width: `${ideologyStats.moderatePercent}%`}} className="bg-gray-400" />
+              <div style={{width: `${ideologyStats.conservativePercent}%`}} className="bg-red-500" />
+            </div>
+          </div>
+        )}
       </div>
     </Link>
   )
