@@ -13,6 +13,7 @@ interface HomepageArticle {
   included_article_ai_summary_descriptions_right: string | null
   included_article_ai_summary_descriptions_left: string | null
   included_article_ai_summary_descriptions_center: string | null
+  included_article_ai_summary_descriptions: string | null
   imageurl: string | null
 }
 
@@ -230,11 +231,7 @@ export default function RealTimeNewsGrid({ selectedCategory }: RealTimeNewsGridP
             key={article.news_post_id}
             id={article.news_post_id}
             title={article.included_article_ai_summary_titles || '제목 없음'}
-            description={
-              (article.included_article_ai_summary_descriptions_right || '') + '\n' +
-              (article.included_article_ai_summary_descriptions_left || '') + '\n' +
-              (article.included_article_ai_summary_descriptions_center || '') || '설명 없음'
-            }
+            description={article.included_article_ai_summary_descriptions || '설명 없음'}
             imageUrl={article.imageurl || undefined}
             category="뉴스"
             ideology={articleIdeologies[article.news_post_id] || 5}
