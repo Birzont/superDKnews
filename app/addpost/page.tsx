@@ -199,6 +199,39 @@ export default function AddPostPage() {
     '생활/건강',
   ];
 
+  // 자동 기사/요약 채우기 함수
+  const handleAutoFillFromHomepageArticles = async () => {
+    if (!majorCatN || !homepageCategory) {
+      alert('Major Cat과 카테고리를 모두 선택하세요.')
+      return
+    }
+    const { data, error } = await supabase
+      .from('homepage_articles')
+      .select('*')
+      .eq('major_cat_n', majorCatN)
+      .eq('category', homepageCategory)
+      .limit(1)
+      .single()
+    if (error || !data) {
+      alert('조건에 맞는 homepage_articles 데이터가 없습니다.')
+      return
+    }
+    // 요약 필드 자동 입력
+    setSummaryTitle(data.included_article_ai_summary_titles || '')
+    setSummaryDescriptionRight(data.included_article_ai_summary_descriptions_right || '')
+    setSummaryDescriptionLeft(data.included_article_ai_summary_descriptions_left || '')
+    setSummaryDescriptionCenter(data.included_article_ai_summary_descriptions_center || '')
+    // 기사 자동 선택
+    let articleIds: string[] = []
+    try {
+      articleIds = JSON.parse(data.included_article_ids)
+    } catch {
+      articleIds = (data.included_article_ids || '').split(',').map((id: string) => id.trim())
+    }
+    const autoSelected = articles.filter(a => articleIds.includes(a.newspaper_post_id))
+    setSelectedArticles(autoSelected)
+  }
+
   if (isAdmin === null) return null;
 
   if (loading) {
@@ -327,6 +360,34 @@ export default function AddPostPage() {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 선택된 기사 ({selectedArticles.length})
               </h2>
+              <div className="flex gap-2 mb-4">
+                <select
+                  value={majorCatN}
+                  onChange={e => setMajorCatN(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Major Cat 선택</option>
+                  {[...Array(10)].map((_, i) => (
+                    <option key={i + 1} value={i + 1}>{i + 1}</option>
+                  ))}
+                </select>
+                <select
+                  value={homepageCategory}
+                  onChange={e => setHomepageCategory(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">카테고리 선택</option>
+                  {fixedCategories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={handleAutoFillFromHomepageArticles}
+                className="mb-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+              >
+                기사 자동 추가
+              </button>
               
               {selectedArticles.length > 0 && (
                 <div className="space-y-3 mb-6">
@@ -399,22 +460,6 @@ export default function AddPostPage() {
                     rows={2}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    카테고리
-                  </label>
-                  <select
-                    value={homepageCategory}
-                    onChange={e => setHomepageCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">카테고리를 선택하세요</option>
-                    {fixedCategories.map(category => (
-                      <option key={category} value={category}>{category}</option>
-                    ))}
-                  </select>
                 </div>
 
                 <div>
