@@ -22,7 +22,7 @@ export default function ControversialIssuePage() {
       .order('created_at', { ascending: false })
     // 필터링: 보수/진보 비율이 45~55% 사이 또는 예시 이슈 3개는 무조건 포함
     const exampleIssues = [
-      '이재명 정부 초대 장관 후보 청문화 시작',
+      '이재명 정부 초대 장관 후보 청문회 시작',
       '윤석열 전 대통령 재구속에 대한 여야 반응',
       '이재명 대통령, 민생회복 위해 소비쿠폰 지급 효과 극대화 주문',
     ];
