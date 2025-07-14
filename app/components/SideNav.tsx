@@ -29,7 +29,17 @@ export default function SideNav() {
       name: 'Home',
       href: '/',
       icon: Home,
-    }
+    },
+    {
+      name: 'Bias issue',
+      href: '/bias-issue',
+      icon: FileText,
+    },
+    {
+      name: 'Controversial issue',
+      href: '/controversial-issue',
+      icon: Building2,
+    },
   ]
 
   return (
