@@ -41,6 +41,11 @@ export default function SideNav() {
       href: '/controversial-issue',
       icon: Building2,
     },
+    {
+      name: 'Media Trend Flow',
+      href: '/media-trend-flow',
+      icon: FileText,
+    },
   ]
 
   return (
