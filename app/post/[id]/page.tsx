@@ -170,11 +170,11 @@ export default async function PostPage({ params }: PostPageProps) {
 
                 {/* 성향별 요약 탭 */}
                 <div className="mb-6">
-                  <SummaryTabs
+                <SummaryTabs
                     left={summaryIssue.progressive_title + '\n' + summaryIssue.progressive_body}
                     center={summaryIssue.centrist_title + '\n' + summaryIssue.centrist_body}
                     right={summaryIssue.conservative_title + '\n' + summaryIssue.conservative_body}
-                  />
+                />
                 </div>
                 {/* 성향별 요약 제목+본문 블록 완전히 삭제 */}
               </div>

@@ -18,6 +18,7 @@ interface NewsCardProps {
     moderatePercent: number;
     conservativePercent: number;
   }
+  imageUrl?: string // 이미지 url prop 추가
 }
 
 export default function NewsCard({
@@ -28,6 +29,7 @@ export default function NewsCard({
   ideology,
   createdAt,
   ideologyStats,
+  imageUrl,
 }: NewsCardProps) {
 
   const getIdeologyColor = (ideology: number) => {
@@ -45,6 +47,12 @@ export default function NewsCard({
   return (
     <Link href={`/post/${id}`}>
       <div className="bg-white rounded-12 border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+        {/* 이미지 영역 */}
+        {imageUrl && (
+          <div className="w-full h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
+            <img src={imageUrl} alt="대표 이미지" className="object-cover w-full h-full" />
+          </div>
+        )}
         <div className="p-6 pb-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full">

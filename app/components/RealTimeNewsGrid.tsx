@@ -25,6 +25,7 @@ interface Issue {
   centrist_ratio: number;
   progressive_ratio: number;
   category: string;
+  url?: string; // 이미지 url 컬럼 추가
 }
 
 interface Article {
@@ -175,9 +176,10 @@ export default function RealTimeNewsGrid({ selectedCategory }: RealTimeNewsGridP
             ideology={summaryArr[0] === summaryArr[2] ? 7 : summaryArr[0] === summaryArr[1] ? 4 : 2}
             createdAt={issue.date || issue.created_at}
             ideologyStats={ideologyStats}
+            imageUrl={issue.url} // 이미지 url 전달
           />
         );
       })}
-    </div>
+      </div>
   );
 } 
