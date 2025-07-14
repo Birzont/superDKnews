@@ -29,6 +29,21 @@ export default function IdeologyStats({ articles }: IdeologyStatsProps) {
     return sum + (article.press_ideology ?? 5)
   }, 0) / (total || 1)
 
+  // 전체 성향 계산 (개수 기준)
+  const max = Math.max(stats.progressive, stats.moderate, stats.conservative);
+  let overallText = '';
+  let overallColor = '';
+  if (max === stats.progressive) {
+    overallText = '진보';
+    overallColor = 'from-blue-800 to-blue-900';
+  } else if (max === stats.moderate) {
+    overallText = '중도';
+    overallColor = 'from-gray-500 to-gray-700';
+  } else {
+    overallText = '보수';
+    overallColor = 'from-red-500 to-red-700';
+  }
+
   // 전체 성향에 따른 색상 결정
   const getOverallColor = (avg: number) => {
     if (avg <= 3) return 'from-blue-800 to-blue-900'
@@ -49,8 +64,8 @@ export default function IdeologyStats({ articles }: IdeologyStatsProps) {
       {/* 전체 성향 */}
       <div className="mb-6">
         <div className="text-sm text-gray-600 mb-2">전체 성향</div>
-        <div className={`bg-gradient-to-r ${getOverallColor(averageIdeology)} text-white px-4 py-3 rounded-lg text-center`}>
-          <div className="text-xl font-bold">{getOverallText(averageIdeology)}</div>
+        <div className={`bg-gradient-to-r ${overallColor} text-white px-4 py-3 rounded-lg text-center`}>
+          <div className="text-xl font-bold">{overallText}</div>
           <div className="text-sm opacity-90">평균: {averageIdeology.toFixed(1)}</div>
         </div>
       </div>

@@ -158,14 +158,17 @@ export default function RealTimeNewsGrid({ selectedCategory }: RealTimeNewsGridP
           moderatePercent: total ? Math.round((issue.centrist_count || 0) / total * 100) : 0,
           conservativePercent: total ? Math.round((issue.conservative_count || 0) / total * 100) : 0,
         };
-        // 대표 요약(진보/중도/보수 중 가장 많은 기사 수 기준)
-        const summaryArr = [
-          { count: issue.progressive_count, title: issue.progressive_title, body: issue.progressive_body },
-          { count: issue.centrist_count, title: issue.centrist_title, body: issue.centrist_body },
-          { count: issue.conservative_count, title: issue.conservative_title, body: issue.conservative_body },
+        // 대표 성향(기사 개수 기준) 계산
+        const counts = [
+          { type: '진보', value: issue.progressive_count || 0 },
+          { type: '중도', value: issue.centrist_count || 0 },
+          { type: '보수', value: issue.conservative_count || 0 },
         ];
-        summaryArr.sort((a, b) => (b.count || 0) - (a.count || 0));
-        const summary = summaryArr[0];
+        counts.sort((a, b) => b.value - a.value);
+        const mainIdeology = counts[0].type;
+        let ideologyValue = 2; // 진보
+        if (mainIdeology === '중도') ideologyValue = 4;
+        else if (mainIdeology === '보수') ideologyValue = 7;
         return (
           <NewsCard
             key={issue.id}
@@ -173,7 +176,7 @@ export default function RealTimeNewsGrid({ selectedCategory }: RealTimeNewsGridP
             title={issue.related_major_issue}
             description={issue.centrist_body}
             category={issue.category}
-            ideology={summaryArr[0] === summaryArr[2] ? 7 : summaryArr[0] === summaryArr[1] ? 4 : 2}
+            ideology={ideologyValue}
             createdAt={issue.date || issue.created_at}
             ideologyStats={ideologyStats}
             imageUrl={issue.url} // 이미지 url 전달

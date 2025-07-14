@@ -109,6 +109,16 @@ export default async function PostPage({ params }: PostPageProps) {
   const moderateArticles = newspaperArticles.filter(a => a.press_ideology && a.press_ideology > 3 && a.press_ideology <= 5)
   const conservativeArticles = newspaperArticles.filter(a => a.press_ideology && a.press_ideology > 5)
 
+  // 대표 성향 계산 (개수 기준)
+  const counts = [
+    { type: '진보', count: progressiveArticles.length },
+    { type: '중도', count: moderateArticles.length },
+    { type: '보수', count: conservativeArticles.length },
+  ];
+  counts.sort((a, b) => b.count - a.count);
+  const mainIdeology = counts[0].type;
+  const mainIdeologyColor = mainIdeology === '진보' ? 'bg-blue-100 text-blue-800' : mainIdeology === '중도' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800';
+
   const getIdeologyColor = (ideology: number) => {
     if (ideology <= 3) return 'bg-blue-100 text-blue-800'
     if (ideology <= 5) return 'bg-yellow-100 text-yellow-800'
@@ -157,6 +167,8 @@ export default async function PostPage({ params }: PostPageProps) {
                 <h1 className="text-3xl font-bold text-gray-900 mb-6">
                   {summaryIssue.related_major_issue || '제목 없음'}
                 </h1>
+
+                {/* 대표 성향 블록 제거 */}
 
                 <div className="text-sm text-gray-500 mb-8">
                   {new Date().toLocaleDateString('ko-KR', {
