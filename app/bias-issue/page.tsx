@@ -26,8 +26,8 @@ export default function BiasIssuePage() {
       if (!total) return false
       const cons = issue.conservative_count || 0
       const prog = issue.progressive_count || 0
-      // 카테고리 필터: 정치, 사회, 경제, 국제, 문화만
-      const allowedCategories = ['정치', '사회', '경제', '국제', '문화']
+      // 카테고리 필터: 정치, 사회, 경제, 국제만
+      const allowedCategories = ['정치', '사회', '경제', '국제']
       if (!allowedCategories.includes(issue.category)) return false
       return cons / total >= 0.7 || prog / total >= 0.7
     })
