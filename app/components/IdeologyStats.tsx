@@ -2,14 +2,14 @@
 
 interface IdeologyStatsProps {
   articles: Array<{
-    news_post_ideology?: number
+    press_ideology?: number
   }>
 }
 
 export default function IdeologyStats({ articles }: IdeologyStatsProps) {
   // 성향별 기사 수 계산
   const stats = articles.reduce((acc, article) => {
-    const ideology = article.news_post_ideology || 5 // 기본값은 중도
+    const ideology = article.press_ideology ?? 5 // 기본값은 중도
     
     if (ideology <= 3) {
       acc.progressive++
@@ -26,8 +26,8 @@ export default function IdeologyStats({ articles }: IdeologyStatsProps) {
 
   // 전체 성향 계산 (가중 평균)
   const averageIdeology = articles.reduce((sum, article) => {
-    return sum + (article.news_post_ideology || 5)
-  }, 0) / total
+    return sum + (article.press_ideology ?? 5)
+  }, 0) / (total || 1)
 
   // 전체 성향에 따른 색상 결정
   const getOverallColor = (avg: number) => {

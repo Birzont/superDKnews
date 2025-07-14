@@ -1,56 +1,70 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
-import SafeImage from '../../components/SafeImage'
 import RealTimeData from '../../components/RealTimeData'
 import IdeologyStats from '../../components/IdeologyStats'
 import SummaryTabs from '../../components/SummaryTabs'
 import ArticleTabs from '../../components/ArticleTabs'
+import React from 'react'
 
 // 실시간 데이터 업데이트를 위한 설정
 export const revalidate = 0 // 매번 새로운 데이터를 가져옴
 
-// homepage_articles 테이블에서 특정 요약 기사를 가져오는 함수
-async function getSummaryArticleById(id: string) {
+// issue_table 테이블에서 특정 요약 이슈를 가져오는 함수로 변경
+async function getSummaryIssueById(id: string) {
   try {
     const { data, error } = await supabase
-      .from('homepage_articles')
+      .from('issue_table')
       .select('*')
-      .eq('news_post_id', id)
+      .eq('id', id)
       .single()
-
     if (error) {
-      console.error('Error fetching summary article:', error)
+      console.error('Error fetching summary issue:', error)
       return null
     }
-
     return data
   } catch (error) {
-    console.error('Error fetching summary article:', error)
+    console.error('Error fetching summary issue:', error)
     return null
   }
 }
 
-// newspaper_articles 테이블에서 특정 기사들을 가져오는 함수
-async function getNewspaperArticles(articleIds: string[]) {
+// articles_table 테이블에서 특정 기사들을 가져오는 함수로 변경
+async function getArticles(articleIds: string[]) {
   try {
     const { data, error } = await supabase
-      .from('newspaper_articles')
+      .from('articles_table')
       .select('*')
-      .in('newspaper_post_id', articleIds)
+      .in('id', articleIds)
       .order('created_at', { ascending: false }) // 최신 기사부터 정렬
-
     if (error) {
-      console.error('Error fetching newspaper articles:', error)
+      console.error('Error fetching articles:', error)
       return []
     }
-
     return data || []
   } catch (error) {
-    console.error('Error fetching newspaper articles:', error)
+    console.error('Error fetching articles:', error)
     return []
   }
+}
+
+// Article 타입 정의 및 사용처 수정
+interface Article {
+  id: string;
+  date: string;
+  press: string;
+  contributor: string;
+  title: string;
+  category: string;
+  institution: string;
+  keywords: string;
+  feature_extraction: string;
+  body: string;
+  url: string;
+  related_major_issue: string;
+  created_at: string;
+  press_ideology: number;
+  major_cat: number;
 }
 
 interface PostPageProps {
@@ -60,9 +74,9 @@ interface PostPageProps {
 }
 
 export default async function PostPage({ params }: PostPageProps) {
-  const summaryArticle = await getSummaryArticleById(params.id)
+  const summaryIssue = await getSummaryIssueById(params.id)
 
-  if (!summaryArticle) {
+  if (!summaryIssue) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -75,25 +89,25 @@ export default async function PostPage({ params }: PostPageProps) {
     )
   }
 
-  // included_article_ids를 파싱하여 개별 기사 ID 배열 생성
+  // news_ids를 파싱하여 개별 기사 ID 배열 생성
   let articleIds: string[] = []
-  if (summaryArticle.included_article_ids) {
+  if (summaryIssue.news_ids) {
     try {
       // JSON 배열 형태로 저장되어 있다고 가정
-      articleIds = JSON.parse(summaryArticle.included_article_ids) as string[]
+      articleIds = JSON.parse(summaryIssue.news_ids) as string[]
     } catch {
       // 쉼표로 구분된 문자열 형태일 수도 있음
-      articleIds = summaryArticle.included_article_ids.split(',').map((id: string) => id.trim())
+      articleIds = summaryIssue.news_ids.split(',').map((id: string) => id.trim())
     }
   }
 
   // 개별 기사들 가져오기
-  const newspaperArticles = await getNewspaperArticles(articleIds)
+  const newspaperArticles = await getArticles(articleIds)
 
   // 성향별로 기사 분류
-  const progressiveArticles = newspaperArticles.filter(a => a.news_post_ideology && a.news_post_ideology <= 3)
-  const moderateArticles = newspaperArticles.filter(a => a.news_post_ideology && a.news_post_ideology > 3 && a.news_post_ideology <= 5)
-  const conservativeArticles = newspaperArticles.filter(a => a.news_post_ideology && a.news_post_ideology > 5)
+  const progressiveArticles = newspaperArticles.filter(a => a.press_ideology && a.press_ideology <= 3)
+  const moderateArticles = newspaperArticles.filter(a => a.press_ideology && a.press_ideology > 3 && a.press_ideology <= 5)
+  const conservativeArticles = newspaperArticles.filter(a => a.press_ideology && a.press_ideology > 5)
 
   const getIdeologyColor = (ideology: number) => {
     if (ideology <= 3) return 'bg-blue-100 text-blue-800'
@@ -107,21 +121,8 @@ export default async function PostPage({ params }: PostPageProps) {
     return '보수'
   }
 
-  // 기본 이미지 URL (이미지 로딩 실패 시 사용)
-  const defaultImageUrl = 'https://images.unsplash.com/photo-1495020683877-95802df4ae64?w=800&h=400&fit=crop'
-
-  // 이미지 URL이 유효한지 확인
-  const isValidImageUrl = (url?: string) => {
-    if (!url) return false
-    try {
-      new URL(url)
-      return true
-    } catch {
-      return false
-    }
-  }
-
-  const displayImageUrl = (summaryArticle.imageurl && isValidImageUrl(summaryArticle.imageurl)) ? summaryArticle.imageurl : defaultImageUrl
+  // 날짜 포맷
+  const dateStr = summaryIssue.date ? new Date(summaryIssue.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' }) : ''
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -143,27 +144,18 @@ export default async function PostPage({ params }: PostPageProps) {
           <div className="lg:col-span-2 space-y-8">
             {/* 요약 기사 섹션 */}
             <article className="bg-white rounded-12 shadow-sm overflow-hidden">
-              <div className="relative h-96 w-full bg-gray-100">
-                <SafeImage
-                  src={displayImageUrl}
-                  alt={summaryArticle.included_article_ai_summary_titles || '뉴스 이미지'}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-
               <div className="p-8">
                 <div className="flex items-center justify-between mb-6">
                   <span className="text-sm font-medium text-gray-600 bg-gray-100 px-4 py-2 rounded-full">
                     뉴스 요약
                   </span>
                   <span className="text-sm font-medium text-gray-600 bg-blue-100 px-3 py-2 rounded-full">
-                    {summaryArticle.article_count || 0}개 기사 포함
+                    {summaryIssue.article_count || 0}개 기사 포함
                   </span>
                 </div>
 
                 <h1 className="text-3xl font-bold text-gray-900 mb-6">
-                  {summaryArticle.included_article_ai_summary_titles || '제목 없음'}
+                  {summaryIssue.related_major_issue || '제목 없음'}
                 </h1>
 
                 <div className="text-sm text-gray-500 mb-8">
@@ -176,12 +168,15 @@ export default async function PostPage({ params }: PostPageProps) {
                   })}
                 </div>
 
-                {/* 요약 설명을 탭으로 보여주기 */}
-                <SummaryTabs
-                  left={summaryArticle.included_article_ai_summary_descriptions_left}
-                  center={summaryArticle.included_article_ai_summary_descriptions_center}
-                  right={summaryArticle.included_article_ai_summary_descriptions_right}
-                />
+                {/* 성향별 요약 탭 */}
+                <div className="mb-6">
+                  <SummaryTabs
+                    left={summaryIssue.progressive_title + '\n' + summaryIssue.progressive_body}
+                    center={summaryIssue.centrist_title + '\n' + summaryIssue.centrist_body}
+                    right={summaryIssue.conservative_title + '\n' + summaryIssue.conservative_body}
+                  />
+                </div>
+                {/* 성향별 요약 제목+본문 블록 완전히 삭제 */}
               </div>
             </article>
 
@@ -201,14 +196,13 @@ export default async function PostPage({ params }: PostPageProps) {
                     progressive={progressiveArticles}
                     moderate={moderateArticles}
                     conservative={conservativeArticles}
-                    defaultImageUrl={defaultImageUrl}
                   />
                 </div>
               </div>
             )}
 
             {/* 기사가 없는 경우 */}
-            {newspaperArticles.length === 0 && summaryArticle.article_count && summaryArticle.article_count > 0 && (
+            {newspaperArticles.length === 0 && summaryIssue.article_count && summaryIssue.article_count > 0 && (
               <div className="bg-white rounded-12 shadow-sm p-8 text-center">
                 <p className="text-gray-600">
                   포함된 기사들을 불러올 수 없습니다.

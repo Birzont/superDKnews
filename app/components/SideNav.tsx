@@ -29,24 +29,7 @@ export default function SideNav() {
       name: 'Home',
       href: '/',
       icon: Home,
-    },
-    ...(isAdmin ? [
-      {
-        name: 'Create News',
-        href: '/createnews',
-        icon: FileText,
-      },
-      {
-        name: 'Create Org',
-        href: '/createorg',
-        icon: Building2,
-      },
-      {
-        name: 'Add Post',
-        href: '/addpost',
-        icon: Plus,
-      },
-    ] : [])
+    }
   ]
 
   return (

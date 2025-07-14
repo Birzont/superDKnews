@@ -5,171 +5,101 @@ import { supabase } from '../../lib/supabase'
 import NewsCard from './NewsCard'
 import Toast from './RealTimeToast'
 
-interface HomepageArticle {
-  news_post_id: string
-  article_count: number | null
-  included_article_ids: string | null
-  included_article_ai_summary_titles: string | null
-  included_article_ai_summary_descriptions_right: string | null
-  included_article_ai_summary_descriptions_left: string | null
-  included_article_ai_summary_descriptions_center: string | null
-  included_article_ai_summary_descriptions: string | null
-  imageurl: string | null
+interface Issue {
+  id: string;
+  related_major_issue: string;
+  news_ids: string;
+  article_count: number;
+  conservative_count: number;
+  conservative_title: string;
+  conservative_body: string;
+  centrist_count: number;
+  centrist_title: string;
+  centrist_body: string;
+  progressive_count: number;
+  progressive_title: string;
+  progressive_body: string;
+  created_at: string;
+  date: string;
+  conservative_ratio: number;
+  centrist_ratio: number;
+  progressive_ratio: number;
+  category: string;
 }
 
-interface NewspaperArticle {
-  newspaper_post_id: string
-  news_post_ideology: number
-}
-
-interface ToastMessage {
-  id: string
-  message: string
-  type: 'success' | 'error' | 'info'
-}
-
-interface IdeologyStats {
-  progressive: number;
-  moderate: number;
-  conservative: number;
-  total: number;
-  progressivePercent: number;
-  moderatePercent: number;
-  conservativePercent: number;
+interface Article {
+  id: string;
+  title: string;
+  body: string;
+  url: string;
+  press: string;
+  press_ideology: number;
+  created_at: string;
+  feature_extraction: string; // Added for image
 }
 
 interface RealTimeNewsGridProps {
-  selectedCategory: string
+  selectedCategory: string;
 }
 
 export default function RealTimeNewsGrid({ selectedCategory }: RealTimeNewsGridProps) {
-  const [articles, setArticles] = useState<HomepageArticle[]>([])
-  const [articleIdeologies, setArticleIdeologies] = useState<{[key: string]: number}>({})
-  const [articleStats, setArticleStats] = useState<{[key: string]: IdeologyStats}>({})
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [toasts, setToasts] = useState<ToastMessage[]>([])
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [articlesMap, setArticlesMap] = useState<{ [issueId: string]: Article[] }>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchArticles()
-  }, [selectedCategory])
+    fetchIssuesAndArticles();
+    // eslint-disable-next-line
+  }, [selectedCategory]);
 
-  const fetchArticles = async () => {
+  const fetchIssuesAndArticles = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true)
-      setError(null)
-      let query = supabase.from('homepage_articles').select('*').eq('category', selectedCategory)
-      const { data, error } = await query
-      if (error) {
-        setError('데이터를 불러오는 중 오류가 발생했습니다.')
-        return
-      }
-      setArticles(data || [])
-      
-      // 각 홈페이지 기사의 포함된 기사들의 성향을 계산
-      await calculateArticleIdeologiesAndStats(data || [])
-    } catch (err) {
-      setError('데이터를 불러오는 중 오류가 발생했습니다.')
-    } finally {
-      setLoading(false)
-    }
-  }
+      // 1. 이슈(요약) 리스트 불러오기
+      const { data: issuesData, error: issuesError } = await supabase
+        .from('issue_table')
+        .select('*')
+        .eq('category', selectedCategory)
+        .order('created_at', { ascending: false });
+      if (issuesError) throw issuesError;
+      setIssues(issuesData || []);
 
-  const calculateArticleIdeologiesAndStats = async (homepageArticles: HomepageArticle[]) => {
-    const ideologies: {[key: string]: number} = {}
-    const stats: {[key: string]: IdeologyStats} = {}
-    
-    for (const article of homepageArticles) {
-      if (!article.included_article_ids) {
-        ideologies[article.news_post_id] = 5 // 기본값 중도
-        stats[article.news_post_id] = {
-          progressive: 0, moderate: 0, conservative: 0, total: 0,
-          progressivePercent: 0, moderatePercent: 0, conservativePercent: 0
-        }
-        continue
-      }
-
-      try {
-        // included_article_ids를 파싱
-        let articleIds: string[] = []
+      // 2. 각 이슈별로 기사 리스트 불러오기
+      const articlesMapTemp: { [issueId: string]: Article[] } = {};
+      for (const issue of issuesData || []) {
+        let articleIds: string[] = [];
         try {
-          // JSON 배열 형태로 저장되어 있다고 가정
-          articleIds = JSON.parse(article.included_article_ids) as string[]
+          articleIds = JSON.parse(issue.news_ids);
         } catch {
-          // 쉼표로 구분된 문자열 형태일 수도 있음
-          articleIds = article.included_article_ids.split(',').map((id: string) => id.trim())
+          articleIds = (issue.news_ids || '').split(',').map((id: string) => id.trim());
         }
-
         if (articleIds.length === 0) {
-          ideologies[article.news_post_id] = 5 // 기본값 중도
-          stats[article.news_post_id] = {
-            progressive: 0, moderate: 0, conservative: 0, total: 0,
-            progressivePercent: 0, moderatePercent: 0, conservativePercent: 0
-          }
-          continue
+          articlesMapTemp[issue.id] = [];
+          continue;
         }
-
-        // 포함된 기사들의 성향 정보 가져오기
-        const { data: newspaperArticles, error } = await supabase
-          .from('newspaper_articles')
-          .select('newspaper_post_id, news_post_ideology')
-          .in('newspaper_post_id', articleIds)
-
-        if (error || !newspaperArticles || newspaperArticles.length === 0) {
-          ideologies[article.news_post_id] = 5 // 기본값 중도
-          stats[article.news_post_id] = {
-            progressive: 0, moderate: 0, conservative: 0, total: 0,
-            progressivePercent: 0, moderatePercent: 0, conservativePercent: 0
-          }
-          continue
-        }
-
-        // 평균 성향 계산
-        const validIdeologies = newspaperArticles
-          .filter(a => a.news_post_ideology != null)
-          .map(a => a.news_post_ideology)
-        
-        if (validIdeologies.length === 0) {
-          ideologies[article.news_post_id] = 5 // 기본값 중도
+        const { data: articlesData, error: articlesError } = await supabase
+          .from('articles_table')
+          .select('id, title, body, url, press, press_ideology, created_at, feature_extraction')
+          .in('id', articleIds);
+        if (articlesError) {
+          articlesMapTemp[issue.id] = [];
         } else {
-          const averageIdeology = validIdeologies.reduce((sum, ideology) => sum + ideology, 0) / validIdeologies.length
-          ideologies[article.news_post_id] = Math.round(averageIdeology * 10) / 10 // 소수점 첫째 자리까지 반올림
-        }
-
-        // 성향별 개수 및 비율 계산
-        let progressive = 0, moderate = 0, conservative = 0
-        for (const ideology of validIdeologies) {
-          if (ideology <= 3) progressive++
-          else if (ideology <= 5) moderate++
-          else conservative++
-        }
-        const total = validIdeologies.length
-        stats[article.news_post_id] = {
-          progressive,
-          moderate,
-          conservative,
-          total,
-          progressivePercent: total ? Math.round((progressive / total) * 100) : 0,
-          moderatePercent: total ? Math.round((moderate / total) * 100) : 0,
-          conservativePercent: total ? Math.round((conservative / total) * 100) : 0
-        }
-      } catch (err) {
-        console.error('성향 계산 중 오류:', err)
-        ideologies[article.news_post_id] = 5 // 기본값 중도
-        stats[article.news_post_id] = {
-          progressive: 0, moderate: 0, conservative: 0, total: 0,
-          progressivePercent: 0, moderatePercent: 0, conservativePercent: 0
+          // articleIds 순서대로 정렬
+          const sortedArticles = articleIds
+            .map(id => (articlesData || []).find((a: Article) => a.id === id))
+            .filter(Boolean) as Article[];
+          articlesMapTemp[issue.id] = sortedArticles;
         }
       }
+      setArticlesMap(articlesMapTemp);
+    } catch (err) {
+      setError('데이터를 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
-    
-    setArticleIdeologies(ideologies)
-    setArticleStats(stats)
-  }
-
-  const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id))
-  }
+  };
 
   if (loading) {
     return (
@@ -177,7 +107,7 @@ export default function RealTimeNewsGrid({ selectedCategory }: RealTimeNewsGridP
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         <span className="ml-3 text-gray-600">뉴스를 불러오는 중...</span>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -186,60 +116,68 @@ export default function RealTimeNewsGrid({ selectedCategory }: RealTimeNewsGridP
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <button
-            onClick={fetchArticles}
+            onClick={fetchIssuesAndArticles}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             다시 시도
           </button>
         </div>
       </div>
-    )
+    );
   }
 
-  if (articles.length === 0) {
+  if (issues.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <p className="text-gray-600 mb-4">표시할 뉴스가 없습니다.</p>
           <button
-            onClick={fetchArticles}
+            onClick={fetchIssuesAndArticles}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             새로고침
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
-    <>
-      {/* 토스트 알림들 */}
-      {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => removeToast(toast.id)}
-        />
-      ))}
-      
-      {/* 뉴스 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {articles.map((article) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {issues.map((issue) => {
+        const articles = articlesMap[issue.id] || [];
+        // ideologyStats 계산
+        const total = (issue.progressive_count || 0) + (issue.centrist_count || 0) + (issue.conservative_count || 0);
+        const ideologyStats = {
+          progressive: issue.progressive_count || 0,
+          moderate: issue.centrist_count || 0,
+          conservative: issue.conservative_count || 0,
+          total,
+          progressivePercent: total ? Math.round((issue.progressive_count || 0) / total * 100) : 0,
+          moderatePercent: total ? Math.round((issue.centrist_count || 0) / total * 100) : 0,
+          conservativePercent: total ? Math.round((issue.conservative_count || 0) / total * 100) : 0,
+        };
+        // 대표 요약(진보/중도/보수 중 가장 많은 기사 수 기준)
+        const summaryArr = [
+          { count: issue.progressive_count, title: issue.progressive_title, body: issue.progressive_body },
+          { count: issue.centrist_count, title: issue.centrist_title, body: issue.centrist_body },
+          { count: issue.conservative_count, title: issue.conservative_title, body: issue.conservative_body },
+        ];
+        summaryArr.sort((a, b) => (b.count || 0) - (a.count || 0));
+        const summary = summaryArr[0];
+        return (
           <NewsCard
-            key={article.news_post_id}
-            id={article.news_post_id}
-            title={article.included_article_ai_summary_titles || '제목 없음'}
-            description={article.included_article_ai_summary_descriptions || '설명 없음'}
-            imageUrl={article.imageurl || undefined}
-            category="뉴스"
-            ideology={articleIdeologies[article.news_post_id] || 5}
-            createdAt={new Date().toISOString()} // 현재 시간으로 설정
-            ideologyStats={articleStats[article.news_post_id]}
+            key={issue.id}
+            id={issue.id}
+            title={issue.related_major_issue}
+            description={issue.centrist_body}
+            category={issue.category}
+            ideology={summaryArr[0] === summaryArr[2] ? 7 : summaryArr[0] === summaryArr[1] ? 4 : 2}
+            createdAt={issue.date || issue.created_at}
+            ideologyStats={ideologyStats}
           />
-        ))}
-      </div>
-    </>
-  )
+        );
+      })}
+    </div>
+  );
 } 
