@@ -29,7 +29,9 @@ export default function BiasIssuePage() {
       // 카테고리 필터: 정치, 사회, 경제, 국제만
       const allowedCategories = ['정치', '사회', '경제', '국제']
       if (!allowedCategories.includes(issue.category)) return false
-      return cons / total >= 0.7 || prog / total >= 0.7
+      // 기존 조건: 보수 또는 진보 비율이 70% 이상
+      // 추가 조건: 진보가 0이거나 보수가 0인 경우도 포함
+      return cons / total >= 0.7 || prog / total >= 0.7 || cons === 0 || prog === 0
     })
     setIssues(filtered)
     setLoading(false)
