@@ -15,13 +15,23 @@ export default function BiasIssuePage() {
 
   const fetchBiasIssues = async () => {
     setLoading(true)
-    // 진보 또는 보수 비율이 70% 이상인 이슈만
+    // article_count 대비 보수 또는 진보 비율이 70% 이상인 이슈만
     const { data, error } = await supabase
       .from('issue_table')
       .select('*')
-      .or('progressive_ratio.gte.70,conservative_ratio.gte.70')
       .order('created_at', { ascending: false })
-    setIssues(data || [])
+    // 필터링: conservative_count/article_count >= 0.7 또는 progressive_count/article_count >= 0.7
+    const filtered = (data || []).filter(issue => {
+      const total = issue.article_count || 0
+      if (!total) return false
+      const cons = issue.conservative_count || 0
+      const prog = issue.progressive_count || 0
+      // 카테고리 필터: 정치, 사회, 경제, 국제, 문화만
+      const allowedCategories = ['정치', '사회', '경제', '국제', '문화']
+      if (!allowedCategories.includes(issue.category)) return false
+      return cons / total >= 0.7 || prog / total >= 0.7
+    })
+    setIssues(filtered)
     setLoading(false)
   }
 
@@ -32,7 +42,7 @@ export default function BiasIssuePage() {
         <div className="p-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Bias Issue</h1>
-            <p className="text-gray-600">진보 또는 보수 비율이 70% 이상인 이슈만 모아봅니다.</p>
+            <p className="text-gray-600">진보 또는 보수 기사 비율이 70% 이상인 이슈만 모아봅니다.</p>
           </div>
           {loading ? (
             <div className="flex items-center justify-center h-64">
@@ -40,11 +50,7 @@ export default function BiasIssuePage() {
               <span className="ml-3 text-gray-600">뉴스를 불러오는 중...</span>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {issues.map((issue) => (
-                <RealTimeNewsGrid key={issue.id} selectedCategory={issue.category} />
-              ))}
-            </div>
+            <RealTimeNewsGrid selectedCategory={""} issuesOverride={issues} />
           )}
         </div>
       </main>

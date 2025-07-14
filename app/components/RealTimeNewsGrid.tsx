@@ -41,18 +41,24 @@ interface Article {
 
 interface RealTimeNewsGridProps {
   selectedCategory: string;
+  issuesOverride?: Issue[];
 }
 
-export default function RealTimeNewsGrid({ selectedCategory }: RealTimeNewsGridProps) {
+export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: RealTimeNewsGridProps) {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [articlesMap, setArticlesMap] = useState<{ [issueId: string]: Article[] }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (issuesOverride) {
+      setIssues(issuesOverride);
+      setLoading(false);
+      return;
+    }
     fetchIssuesAndArticles();
     // eslint-disable-next-line
-  }, [selectedCategory]);
+  }, [selectedCategory, issuesOverride]);
 
   const fetchIssuesAndArticles = async () => {
     setLoading(true);
