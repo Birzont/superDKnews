@@ -43,7 +43,7 @@ export default function SideNav() {
     },
     {
       name: 'Media Trend Flow',
-      href: '/media-trend-flow',
+      href: '/mediatrendflow',
       icon: FileText,
     },
   ]
