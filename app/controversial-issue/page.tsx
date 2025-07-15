@@ -25,6 +25,9 @@ export default function ControversialIssuePage() {
       '이재명 정부 초대 장관 후보 청문회 시작',
       '윤석열 전 대통령 재구속에 대한 여야 반응',
       '이재명 대통령, 민생회복 위해 소비쿠폰 지급 효과 극대화 주문',
+      '이재명 정부 1기 장관 후보자 청문회 진행',
+      '조은석 특검팀, 윤 전 대통령 2차 강제구인 시도',
+      '장관 후보자 논란과 여권 고심'
     ];
     const filtered = (data || []).filter(issue => {
       const total = issue.article_count || 0

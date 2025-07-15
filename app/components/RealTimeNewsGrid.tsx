@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import NewsCard from './NewsCard'
 import Toast from './RealTimeToast'
@@ -49,33 +49,55 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
   const [articlesMap, setArticlesMap] = useState<{ [issueId: string]: Article[] }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const loader = useRef<HTMLDivElement | null>(null);
+  const PAGE_SIZE = 10;
+
+  useEffect(() => {
+    setIssues([]);
+    setArticlesMap({});
+    setPage(1);
+    setHasMore(true);
+    setLoading(true);
+  }, [selectedCategory, issuesOverride]);
 
   useEffect(() => {
     if (issuesOverride) {
       setIssues(issuesOverride);
       setLoading(false);
+      setHasMore(false);
       return;
     }
-    fetchIssuesAndArticles();
+    fetchIssuesAndArticles(page);
     // eslint-disable-next-line
-  }, [selectedCategory, issuesOverride]);
+  }, [selectedCategory, issuesOverride, page]);
 
-  const fetchIssuesAndArticles = async () => {
+  const fetchIssuesAndArticles = async (pageNum = 1) => {
     setLoading(true);
     setError(null);
     try {
-      // 1. 이슈(요약) 리스트 불러오기
+      const from = (pageNum - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      // 1. 이슈(요약) 리스트 불러오기 (페이지 단위)
       const { data: issuesData, error: issuesError } = await supabase
         .from('issue_table')
         .select('*')
         .eq('category', selectedCategory)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
       if (issuesError) throw issuesError;
-      setIssues(issuesData || []);
+      if (!issuesData || issuesData.length === 0) {
+        setHasMore(false);
+        setLoading(false);
+        return;
+      }
+      setIssues(prev => pageNum === 1 ? issuesData : [...prev, ...issuesData]);
+      if (issuesData.length < PAGE_SIZE) setHasMore(false);
 
       // 2. 각 이슈별로 기사 리스트 불러오기
       const articlesMapTemp: { [issueId: string]: Article[] } = {};
-      for (const issue of issuesData || []) {
+      for (const issue of issuesData) {
         let articleIds: string[] = [];
         try {
           articleIds = JSON.parse(issue.news_ids);
@@ -100,7 +122,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
           articlesMapTemp[issue.id] = sortedArticles;
         }
       }
-      setArticlesMap(articlesMapTemp);
+      setArticlesMap(prev => ({ ...prev, ...articlesMapTemp }));
     } catch (err) {
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
@@ -108,7 +130,32 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
     }
   };
 
-  if (loading) {
+  // IntersectionObserver로 무한 스크롤 구현
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    const target = entries[0];
+    if (target.isIntersecting && hasMore && !loading) {
+      setPage(prev => prev + 1);
+    }
+  }, [hasMore, loading]);
+
+  useEffect(() => {
+    if (!loader.current) return;
+    const option = { root: null, rootMargin: '20px', threshold: 0 };
+    const observer = new window.IntersectionObserver(handleObserver, option);
+    observer.observe(loader.current);
+    return () => observer.disconnect();
+  }, [handleObserver]);
+
+  const handleRetry = () => {
+    setPage(1);
+    setHasMore(true);
+    setIssues([]);
+    setArticlesMap({});
+    setError(null);
+    setLoading(true);
+  };
+
+  if (loading && issues.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -123,7 +170,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <button
-            onClick={fetchIssuesAndArticles}
+            onClick={handleRetry}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             다시 시도
@@ -139,7 +186,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
         <div className="text-center">
           <p className="text-gray-600 mb-4">표시할 뉴스가 없습니다.</p>
           <button
-            onClick={fetchIssuesAndArticles}
+            onClick={handleRetry}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             새로고침
@@ -150,45 +197,59 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {issues.map((issue) => {
-        const articles = articlesMap[issue.id] || [];
-        // ideologyStats 계산
-        const total = (issue.progressive_count || 0) + (issue.centrist_count || 0) + (issue.conservative_count || 0);
-        const ideologyStats = {
-          progressive: issue.progressive_count || 0,
-          moderate: issue.centrist_count || 0,
-          conservative: issue.conservative_count || 0,
-          total,
-          progressivePercent: total ? Math.round((issue.progressive_count || 0) / total * 100) : 0,
-          moderatePercent: total ? Math.round((issue.centrist_count || 0) / total * 100) : 0,
-          conservativePercent: total ? Math.round((issue.conservative_count || 0) / total * 100) : 0,
-        };
-        // 대표 성향(기사 개수 기준) 계산
-        const counts = [
-          { type: '진보', value: issue.progressive_count || 0 },
-          { type: '중도', value: issue.centrist_count || 0 },
-          { type: '보수', value: issue.conservative_count || 0 },
-        ];
-        counts.sort((a, b) => b.value - a.value);
-        const mainIdeology = counts[0].type;
-        let ideologyValue = 2; // 진보
-        if (mainIdeology === '중도') ideologyValue = 4;
-        else if (mainIdeology === '보수') ideologyValue = 7;
-        return (
-          <NewsCard
-            key={issue.id}
-            id={issue.id}
-            title={issue.related_major_issue}
-            description={issue.centrist_body && issue.centrist_body.trim() !== '' ? issue.centrist_body : issue.conservative_body}
-            category={issue.category}
-            ideology={ideologyValue}
-            createdAt={issue.date || issue.created_at}
-            ideologyStats={ideologyStats}
-            imageUrl={issue.url} // 이미지 url 전달
-          />
-        );
-      })}
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {issues.map((issue) => {
+          const articles = articlesMap[issue.id] || [];
+          // ideologyStats 계산
+          const total = (issue.progressive_count || 0) + (issue.centrist_count || 0) + (issue.conservative_count || 0);
+          const ideologyStats = {
+            progressive: issue.progressive_count || 0,
+            moderate: issue.centrist_count || 0,
+            conservative: issue.conservative_count || 0,
+            total,
+            progressivePercent: total ? Math.round((issue.progressive_count || 0) / total * 100) : 0,
+            moderatePercent: total ? Math.round((issue.centrist_count || 0) / total * 100) : 0,
+            conservativePercent: total ? Math.round((issue.conservative_count || 0) / total * 100) : 0,
+          };
+          // 대표 성향(기사 개수 기준) 계산
+          const counts = [
+            { type: '진보', value: issue.progressive_count || 0 },
+            { type: '중도', value: issue.centrist_count || 0 },
+            { type: '보수', value: issue.conservative_count || 0 },
+          ];
+          counts.sort((a, b) => b.value - a.value);
+          const mainIdeology = counts[0].type;
+          let ideologyValue = 2; // 진보
+          if (mainIdeology === '중도') ideologyValue = 4;
+          else if (mainIdeology === '보수') ideologyValue = 7;
+          return (
+            <NewsCard
+              key={issue.id}
+              id={issue.id}
+              title={issue.related_major_issue}
+              description={issue.centrist_body && issue.centrist_body.trim() !== '' ? issue.centrist_body : issue.conservative_body}
+              category={issue.category}
+              ideology={ideologyValue}
+              createdAt={issue.date || issue.created_at}
+              ideologyStats={ideologyStats}
+              imageUrl={issue.url} // 이미지 url 전달
+            />
+          );
+        })}
       </div>
+      <div ref={loader} />
+      {loading && issues.length > 0 && (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">추가 뉴스를 불러오는 중...</span>
+        </div>
+      )}
+      {!hasMore && !loading && (
+        <div className="flex items-center justify-center py-8">
+          <span className="text-gray-400">더 이상 뉴스가 없습니다.</span>
+        </div>
+      )}
+    </>
   );
 } 
