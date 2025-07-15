@@ -24,16 +24,20 @@ const MediaTrendFlowPage = () => {
                 후쿠시마 오염수 방류 보도 추적
               </a>
               <a
-                href="#"
+                href="https://fundacaive2.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold py-6 rounded-2xl shadow transition-colors duration-200 text-center"
               >
-                특정 이슈에 대한 보도 변화를 추적
+                기본소득 보도 추적
               </a>
               <a
-                href="#"
+                href="https://wonjaacaive3.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold py-6 rounded-2xl shadow transition-colors duration-200 text-center"
               >
-                특정 이슈에 대한 보도 변화를 추적
+                원자력 발전소 보도 추적
               </a>
             </div>
           </div>
