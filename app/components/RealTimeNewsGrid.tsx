@@ -180,7 +180,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
             key={issue.id}
             id={issue.id}
             title={issue.related_major_issue}
-            description={issue.centrist_body}
+            description={issue.centrist_body && issue.centrist_body.trim() !== '' ? issue.centrist_body : issue.conservative_body}
             category={issue.category}
             ideology={ideologyValue}
             createdAt={issue.date || issue.created_at}
