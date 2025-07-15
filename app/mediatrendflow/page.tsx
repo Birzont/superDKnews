@@ -1,25 +1,44 @@
 import React from "react";
+import SideNav from '../components/SideNav';
 
 const MediaTrendFlowPage = () => {
   return (
-    <div className="container mx-auto px-4 py-10 md:py-16 lg:py-20">
-      <div className="mb-10 flex items-start">
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900">특정 이슈에 대한 보도 변화를 추적해드립니다.</h1>
-      </div>
-      <div className="bg-white rounded-2xl shadow p-8 flex flex-col min-h-[400px] justify-center">
-        <div className="mb-6 flex flex-row justify-start w-full gap-4 items-center">
-          <a
-            href="https://hukuacaive1.netlify.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow transition-colors duration-200"
-          >
-            후쿠시마 오염수 방류 보도 추적
-          </a>
-          {/* 여기에 버튼을 추가할 수 있습니다 */}
+    <div className="flex min-h-screen bg-gray-50">
+      <SideNav />
+      <main className="flex-1 overflow-auto bg-gradient-to-b from-gray-100 to-white relative">
+        {/* 상단 헤더 */}
+        <div className="w-[1450px] mx-auto pt-10 px-4">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 text-left">Media Trend Flow</h1>
+          <p className="text-gray-500 text-lg text-left">특정 이슈에 대한 보도 변화를 추적해드립니다.</p>
         </div>
-        {/* 추후: 이슈별 보도 변화 그래프/리스트 등 추가 */}
-      </div>
+        {/* 중앙 카드 */}
+        <div className="w-[1450px] mx-auto mt-12 mb-8 px-4">
+          <div className="bg-white rounded-3xl shadow-lg p-8 md:p-12 flex flex-col items-center min-h-[600px] w-full">
+            <div className="w-full flex flex-col gap-8 mt-8">
+              <a
+                href="https://hukuacaive1.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold py-6 rounded-2xl shadow transition-colors duration-200 text-center"
+              >
+                후쿠시마 오염수 방류 보도 추적
+              </a>
+              <a
+                href="#"
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold py-6 rounded-2xl shadow transition-colors duration-200 text-center"
+              >
+                특정 이슈에 대한 보도 변화를 추적
+              </a>
+              <a
+                href="#"
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold py-6 rounded-2xl shadow transition-colors duration-200 text-center"
+              >
+                특정 이슈에 대한 보도 변화를 추적
+              </a>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
