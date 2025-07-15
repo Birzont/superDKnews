@@ -48,8 +48,8 @@ export default function ControversialIssuePage() {
       <SideNav />
       <main className="flex-1 bg-gray-50 px-8 pt-10">
         <div className="max-w-3xl mb-8">
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-2">Controversial Issue</h1>
-          <p className="text-base text-gray-500">국내의 논쟁적인 이슈만 모아봅니다.</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">Controversial Issue</h1>
+          <p className="text-base text-gray-500 text-left font-pretendard">국내의 논쟁적인 이슈만 모아봅니다.</p>
         </div>
         {loading ? (
           <div className="flex items-center justify-center h-64">

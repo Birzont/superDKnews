@@ -2,9 +2,11 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import RealTimeData from '../../components/RealTimeData'
-import IdeologyStats from '../../components/IdeologyStats'
-import SummaryTabs from '../../components/SummaryTabs'
-import ArticleTabs from '../../components/ArticleTabs'
+import dynamic from 'next/dynamic'
+// 동적 import 적용
+const IdeologyStats = dynamic(() => import('../../components/IdeologyStats'), { ssr: false })
+const SummaryTabs = dynamic(() => import('../../components/SummaryTabs'), { ssr: false })
+const ArticleTabs = dynamic(() => import('../../components/ArticleTabs'), { ssr: false })
 import React from 'react'
 
 // 실시간 데이터 업데이트를 위한 설정

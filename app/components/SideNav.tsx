@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, FileText, Building2, Plus, Menu } from 'lucide-react'
+import { Home, FileText, Building2, Menu } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import Image from 'next/image'
 
 export default function SideNav() {
   const pathname = usePathname()
@@ -32,12 +33,12 @@ export default function SideNav() {
       icon: Home,
     },
     {
-      name: 'Bias issue',
+      name: 'Bias Issue',
       href: '/bias-issue',
       icon: FileText,
     },
     {
-      name: 'Controversial issue',
+      name: 'Controversial Issue',
       href: '/controversial-issue',
       icon: Building2,
     },
@@ -58,8 +59,16 @@ export default function SideNav() {
       <div className={`fixed md:static top-0 left-0 z-40 w-72 h-screen bg-white border-r border-gray-200 p-4 flex flex-col justify-between transition-transform duration-200 md:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} md:block`}> 
         <div>
           <div className="mb-8 flex flex-col items-center">
-            <img src="https://d0gyunkim.github.io/superDKnews-res/superdknews.png" alt="DK News Super Logo" className="w-24 h-24 object-contain mb-2" />
-            <p className="text-sm text-gray-600">뉴스 리터러시 플랫폼</p>
+            <Image
+              src="/KakaoTalk_Photo_2025-07-15-12-54-41.jpeg"
+              alt="뉴스 리터러시 로고"
+              width={96}
+              height={96}
+              className="w-24 h-24 object-contain mb-2"
+              priority
+              placeholder="blur"
+              blurDataURL="/KakaoTalk_Photo_2025-07-15-12-54-41.jpeg"
+            />
           </div>
           <nav className="space-y-2">
             {navItems.map((item) => {

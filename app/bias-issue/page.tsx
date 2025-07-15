@@ -43,8 +43,8 @@ export default function BiasIssuePage() {
       <main className="flex-1 overflow-auto">
         <div className="p-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Bias Issue</h1>
-            <p className="text-gray-600">진보 또는 보수 기사 비율이 70% 이상인 이슈만 모아봅니다.</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">Bias Issue</h1>
+            <p className="text-base text-gray-500 text-left font-pretendard">진보 또는 보수 기사 비율이 70% 이상인 이슈만 모아봅니다.</p>
           </div>
           {loading ? (
             <div className="flex items-center justify-center h-64">

@@ -25,8 +25,8 @@ export default function Home() {
       <main className="flex-1 overflow-auto">
         <div className="p-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">뉴스 리터러시</h1>
-            <p className="text-gray-600">다양한 관점의 뉴스를 읽고 분석해보세요</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">뉴스 리터러시</h1>
+            <p className="text-base text-gray-500 text-left font-pretendard">다양한 관점의 뉴스를 읽고 분석해보세요</p>
           </div>
           
           {/* 카테고리 네비게이션 */}
