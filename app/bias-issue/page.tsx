@@ -47,7 +47,17 @@ export default function BiasIssuePage() {
       // 추가 조건: 진보가 0이거나 보수가 0인 경우도 포함
       return cons / total >= 0.7 || prog / total >= 0.7 || cons === 0 || prog === 0
     })
-    setIssues(filtered)
+    
+    // 보수 %가 높은 순으로 정렬
+    const sorted = filtered.sort((a, b) => {
+      const aTotal = a.article_count || 0
+      const bTotal = b.article_count || 0
+      const aConsRatio = aTotal > 0 ? (a.conservative_count || 0) / aTotal : 0
+      const bConsRatio = bTotal > 0 ? (b.conservative_count || 0) / bTotal : 0
+      return bConsRatio - aConsRatio // 내림차순 정렬 (높은 순)
+    })
+    
+    setIssues(sorted)
     setLoading(false)
   }
 
