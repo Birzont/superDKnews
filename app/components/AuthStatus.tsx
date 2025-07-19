@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
+import { Search, X } from 'lucide-react';
 
 export default function AuthStatus() {
   const [user, setUser] = useState<User | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -33,6 +35,19 @@ export default function AuthStatus() {
     router.refresh();
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // 검색 실행 (RealTimeNewsGrid에서 처리)
+    // URL 파라미터로 검색어 전달
+    if (searchQuery.trim()) {
+      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
+
   return (
     <div style={{
       position: "fixed",
@@ -43,6 +58,34 @@ export default function AuthStatus() {
       alignItems: "center",
       gap: "10px"
     }}>
+      {/* 검색창 */}
+      <form onSubmit={handleSearch} className="relative">
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="뉴스 검색..."
+            className="w-48 px-3 py-1.5 pr-8 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X size={14} />
+            </button>
+          )}
+          <button
+            type="submit"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <Search size={14} />
+          </button>
+        </div>
+      </form>
+
       {user ? (
         <>
           <span style={{ fontWeight: "bold" }}>{user.email}</span>
