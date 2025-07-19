@@ -28,22 +28,22 @@ export default function SideNav() {
 
   const navItems = [
     {
-      name: 'Home',
+      name: '뉴스 한누네',
       href: '/',
       icon: Home,
     },
     {
-      name: 'Bias Issue',
+      name: '보도 사각지대',
       href: '/bias-issue',
       icon: FileText,
     },
     {
-      name: 'Controversial Issue',
+      name: '국내 쟁점 사안',
       href: '/controversial-issue',
       icon: Building2,
     },
     {
-      name: 'Media Trend Flow',
+      name: '보도 아카이브',
       href: '/mediatrendflow',
       icon: FileText,
     },

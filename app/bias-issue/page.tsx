@@ -77,11 +77,11 @@ export default function BiasIssuePage() {
         {/* 메인 콘텐츠 */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">Bias Issue</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">보도 사각지대</h1>
             <p className="text-base text-gray-500 text-left font-pretendard">
               {searchQuery 
-                ? `"${searchQuery}" 검색 결과 - ${selectedCategory} 카테고리의 편향된 이슈`
-                : `${selectedCategory} 카테고리의 진보 또는 보수 기사 비율이 70% 이상인 이슈만 모아봅니다.`
+                ? `"${searchQuery}" 검색 결과 - ${selectedCategory} 카테고리의 특정 진영만 보도하는 주제`
+                : `${selectedCategory} 카테고리의 특정 진영만 보도하는 주제를 찾아, 언론의 공백을 확인해보세요.`
               }
             </p>
           </div>

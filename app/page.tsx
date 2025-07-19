@@ -46,6 +46,15 @@ export default function Home() {
 
         {/* 메인 콘텐츠 */}
         <div className="flex-1 overflow-y-auto p-6">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">뉴스 한누네</h1>
+            <p className="text-base text-gray-500 text-left font-pretendard">
+              {searchQuery 
+                ? `"${searchQuery}" 검색 결과 - 오늘의 주요 이슈를 진보·중도·보수 관점으로 한눈에 비교해보세요`
+                : "오늘의 주요 이슈를 진보·중도·보수 관점으로 한눈에 비교해보세요."
+              }
+            </p>
+          </div>
           <RealTimeNewsGrid 
             selectedCategory={selectedCategory} 
             searchQuery={searchQuery}

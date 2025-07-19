@@ -56,11 +56,11 @@ export default function ControversialIssuePage() {
         {/* 메인 콘텐츠 */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">Controversial Issue</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">국내 쟁점 사안</h1>
             <p className="text-base text-gray-500 text-left font-pretendard">
               {searchQuery 
-                ? `"${searchQuery}" 검색 결과 - 국내의 논쟁적인 이슈`
-                : "국내의 논쟁적인 이슈만 모아봅니다."
+                ? `"${searchQuery}" 검색 결과 - 한국 사회의 가장 뜨거운 논쟁 이슈`
+                : "한국 사회의 가장 뜨거운 논쟁 이슈를 다양한 시각으로 살펴봅니다."
               }
             </p>
           </div>
