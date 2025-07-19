@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* 회사 정보 */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 font-pretendard">한누네 주식회사</h3>
+            <h3 className="text-lg font-semibold mb-4 font-pretendard">한누네</h3>
             <div className="space-y-2 text-sm text-gray-300 font-pretendard">
               <p>대표자: 김도균</p>
               <p>대표전화: 010-3863-1636</p>
@@ -41,7 +41,7 @@ export default function Footer() {
         {/* 저작권 정보 */}
         <div className="border-t border-gray-700 mt-8 pt-8 text-center">
           <p className="text-sm text-gray-400 font-pretendard">
-            © 2025 한누네 주식회사. All rights reserved.
+            © 2025 한누네. All rights reserved.
           </p>
         </div>
       </div>
