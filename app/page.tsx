@@ -22,11 +22,11 @@ export default function Home() {
   const searchQuery = searchParams.get('search') || ''
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50">
       <SideNav />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col">
         {/* 메인 콘텐츠 */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 p-6">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">뉴스 한누네</h1>
             <p className="text-base text-gray-500 text-left font-pretendard">

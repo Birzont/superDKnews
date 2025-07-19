@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import AuthStatus from "./components/AuthStatus";
+import Footer from "./components/Footer";
 
 export const metadata: Metadata = {
   title: 'DK News Super - 뉴스 리터러시 플랫폼',
@@ -24,6 +25,7 @@ export default function RootLayout({
       <body>
         <AuthStatus />
         {children}
+        <Footer />
       </body>
     </html>
   )
