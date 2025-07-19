@@ -80,7 +80,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
   // 검색어가 변경될 때마다 필터링
   useEffect(() => {
     if (searchQuery && searchQuery.trim()) {
-      // Bias Issue 페이지의 경우 이미 필터링된 이슈들 중에서 검색
+      // Bias Issue, Controversial Issue 페이지의 경우 이미 필터링된 이슈들 중에서 검색
       if (issuesOverride) {
         filterIssuesBySearch(searchQuery.trim(), issuesOverride);
         // 검색된 이슈들의 기사들도 불러오기
@@ -92,7 +92,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
     } else {
       // 검색어가 없으면 페이지네이션 적용
       if (issuesOverride) {
-        // Bias Issue 페이지의 경우 모든 필터링된 이슈 표시
+        // Bias Issue, Controversial Issue 페이지의 경우 모든 필터링된 이슈 표시
         setIssues(issuesOverride);
         setTotalPages(1);
         // 모든 이슈의 기사들 불러오기

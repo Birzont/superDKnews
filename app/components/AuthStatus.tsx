@@ -49,6 +49,9 @@ export default function AuthStatus() {
     } else if (pathname === '/bias-issue') {
       // Bias Issue 페이지
       router.push(`/bias-issue?${searchParam}`);
+    } else if (pathname === '/controversial-issue') {
+      // Controversial Issue 페이지
+      router.push(`/controversial-issue?${searchParam}`);
     }
     // 다른 페이지에서는 검색 기능 비활성화
   };
@@ -57,8 +60,8 @@ export default function AuthStatus() {
     setSearchQuery('');
   };
 
-  // Home과 Bias Issue 페이지에서만 검색창 표시
-  const showSearch = pathname === '/' || pathname === '/bias-issue';
+  // Home, Bias Issue, Controversial Issue 페이지에서만 검색창 표시
+  const showSearch = pathname === '/' || pathname === '/bias-issue' || pathname === '/controversial-issue';
 
   return (
     <div style={{

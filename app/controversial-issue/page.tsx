@@ -3,11 +3,14 @@
 import SideNav from '../components/SideNav'
 import RealTimeNewsGrid from '../components/RealTimeNewsGrid'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 
 export default function ControversialIssuePage() {
   const [issues, setIssues] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.get('search') || ''
 
   useEffect(() => {
     fetchControversialIssues()
@@ -47,22 +50,34 @@ export default function ControversialIssuePage() {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen bg-gray-50">
       <SideNav />
-      <main className="flex-1 bg-gray-50 px-8 pt-10">
-        <div className="max-w-3xl mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">Controversial Issue</h1>
-          <p className="text-base text-gray-500 text-left font-pretendard">국내의 논쟁적인 이슈만 모아봅니다.</p>
-        </div>
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <span className="ml-3 text-gray-600">뉴스를 불러오는 중...</span>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 메인 콘텐츠 */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">Controversial Issue</h1>
+            <p className="text-base text-gray-500 text-left font-pretendard">
+              {searchQuery 
+                ? `"${searchQuery}" 검색 결과 - 국내의 논쟁적인 이슈`
+                : "국내의 논쟁적인 이슈만 모아봅니다."
+              }
+            </p>
           </div>
-        ) : (
-          <RealTimeNewsGrid selectedCategory={""} issuesOverride={issues} />
-        )}
-      </main>
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">뉴스를 불러오는 중...</span>
+            </div>
+          ) : (
+            <RealTimeNewsGrid 
+              selectedCategory={""} 
+              issuesOverride={issues} 
+              searchQuery={searchQuery}
+            />
+          )}
+        </div>
+      </div>
     </div>
   )
 } 
