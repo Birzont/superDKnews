@@ -43,7 +43,7 @@ export default function SideNav() {
       icon: Building2,
     },
     {
-      name: '보도 아카이브',
+      name: '이슈별 흐름 아카이브',
       href: '/mediatrendflow',
       icon: FileText,
     },
