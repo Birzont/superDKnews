@@ -3,11 +3,14 @@
 import SideNav from '../components/SideNav'
 import RealTimeNewsGrid from '../components/RealTimeNewsGrid'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 
 export default function BiasIssuePage() {
   const [issues, setIssues] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.get('search') || ''
 
   useEffect(() => {
     fetchBiasIssues()
@@ -44,7 +47,12 @@ export default function BiasIssuePage() {
         <div className="p-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">Bias Issue</h1>
-            <p className="text-base text-gray-500 text-left font-pretendard">진보 또는 보수 기사 비율이 70% 이상인 이슈만 모아봅니다.</p>
+            <p className="text-base text-gray-500 text-left font-pretendard">
+              {searchQuery 
+                ? `"${searchQuery}" 검색 결과 - 진보 또는 보수 기사 비율이 70% 이상인 이슈`
+                : "진보 또는 보수 기사 비율이 70% 이상인 이슈만 모아봅니다."
+              }
+            </p>
           </div>
           {loading ? (
             <div className="flex items-center justify-center h-64">
@@ -52,7 +60,11 @@ export default function BiasIssuePage() {
               <span className="ml-3 text-gray-600">뉴스를 불러오는 중...</span>
             </div>
           ) : (
-            <RealTimeNewsGrid selectedCategory={""} issuesOverride={issues} />
+            <RealTimeNewsGrid 
+              selectedCategory={""} 
+              issuesOverride={issues} 
+              searchQuery={searchQuery}
+            />
           )}
         </div>
       </main>

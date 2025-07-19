@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { Search, X } from 'lucide-react';
 
@@ -9,6 +9,7 @@ export default function AuthStatus() {
   const [user, setUser] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     // 현재 로그인 상태 확인
@@ -37,16 +38,27 @@ export default function AuthStatus() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // 검색 실행 (RealTimeNewsGrid에서 처리)
-    // URL 파라미터로 검색어 전달
-    if (searchQuery.trim()) {
-      router.push(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+    if (!searchQuery.trim()) return;
+
+    // 현재 페이지에 따라 검색 URL 결정
+    const searchParam = `search=${encodeURIComponent(searchQuery.trim())}`;
+    
+    if (pathname === '/') {
+      // Home 페이지
+      router.push(`/?${searchParam}`);
+    } else if (pathname === '/bias-issue') {
+      // Bias Issue 페이지
+      router.push(`/bias-issue?${searchParam}`);
     }
+    // 다른 페이지에서는 검색 기능 비활성화
   };
 
   const clearSearch = () => {
     setSearchQuery('');
   };
+
+  // Home과 Bias Issue 페이지에서만 검색창 표시
+  const showSearch = pathname === '/' || pathname === '/bias-issue';
 
   return (
     <div style={{
@@ -58,33 +70,35 @@ export default function AuthStatus() {
       alignItems: "center",
       gap: "10px"
     }}>
-      {/* 검색창 */}
-      <form onSubmit={handleSearch} className="relative">
-        <div className="relative">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="뉴스 검색..."
-            className="w-48 px-3 py-1.5 pr-8 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          {searchQuery && (
+      {/* 검색창 - Home과 Bias Issue 페이지에서만 표시 */}
+      {showSearch && (
+        <form onSubmit={handleSearch} className="relative">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="뉴스 검색..."
+              className="w-48 px-3 py-1.5 pr-8 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={14} />
+              </button>
+            )}
             <button
-              type="button"
-              onClick={clearSearch}
-              className="absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              type="submit"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              <X size={14} />
+              <Search size={14} />
             </button>
-          )}
-          <button
-            type="submit"
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            <Search size={14} />
-          </button>
-        </div>
-      </form>
+          </div>
+        </form>
+      )}
 
       {user ? (
         <>

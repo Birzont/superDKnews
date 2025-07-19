@@ -62,30 +62,50 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
     setLoading(true);
   }, [selectedCategory, issuesOverride]);
 
+  // issuesOverride가 변경될 때마다 처리
   useEffect(() => {
     if (issuesOverride) {
       setAllIssues(issuesOverride);
       setIssues(issuesOverride);
-      setLoading(false);
       setTotalPages(1);
-      return;
+      setLoading(false);
+      // 기사들 불러오기
+      fetchArticlesForIssues(issuesOverride);
+    } else {
+      // Home 페이지의 경우 fetchAllIssues 호출
+      fetchAllIssues();
     }
-    fetchAllIssues();
-    // eslint-disable-next-line
-  }, [selectedCategory, issuesOverride]);
+  }, [issuesOverride, selectedCategory]);
 
   // 검색어가 변경될 때마다 필터링
   useEffect(() => {
     if (searchQuery && searchQuery.trim()) {
-      filterIssuesBySearch(searchQuery.trim());
+      // Bias Issue 페이지의 경우 이미 필터링된 이슈들 중에서 검색
+      if (issuesOverride) {
+        filterIssuesBySearch(searchQuery.trim(), issuesOverride);
+        // 검색된 이슈들의 기사들도 불러오기
+        fetchArticlesForIssues(issuesOverride);
+      } else {
+        // Home 페이지의 경우 모든 이슈에서 검색
+        filterIssuesBySearch(searchQuery.trim());
+      }
     } else {
       // 검색어가 없으면 페이지네이션 적용
-      const startIndex = (currentPage - 1) * PAGE_SIZE;
-      const endIndex = startIndex + PAGE_SIZE;
-      setIssues(allIssues.slice(startIndex, endIndex));
-      setTotalPages(Math.ceil(allIssues.length / PAGE_SIZE));
+      if (issuesOverride) {
+        // Bias Issue 페이지의 경우 모든 필터링된 이슈 표시
+        setIssues(issuesOverride);
+        setTotalPages(1);
+        // 모든 이슈의 기사들 불러오기
+        fetchArticlesForIssues(issuesOverride);
+      } else {
+        // Home 페이지의 경우 페이지네이션 적용
+        const startIndex = (currentPage - 1) * PAGE_SIZE;
+        const endIndex = startIndex + PAGE_SIZE;
+        setIssues(allIssues.slice(startIndex, endIndex));
+        setTotalPages(Math.ceil(allIssues.length / PAGE_SIZE));
+      }
     }
-  }, [searchQuery, allIssues, currentPage]);
+  }, [searchQuery, allIssues, currentPage, issuesOverride]);
 
   // 모든 이슈를 가져오는 함수
   const fetchAllIssues = async () => {
@@ -118,8 +138,8 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
   };
 
   // 검색 필터링 함수
-  const filterIssuesBySearch = (query: string) => {
-    const filtered = allIssues.filter(issue => {
+  const filterIssuesBySearch = (query: string, issuesToFilter: Issue[] = allIssues) => {
+    const filtered = issuesToFilter.filter(issue => {
       const title = issue.related_major_issue?.toLowerCase() || '';
       const progressiveBody = issue.progressive_body?.toLowerCase() || '';
       const centristBody = issue.centrist_body?.toLowerCase() || '';
