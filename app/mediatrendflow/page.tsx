@@ -9,7 +9,7 @@ const MediaTrendFlowPage = () => {
         {/* 상단 헤더 */}
         <div className="w-[1600px] mx-auto pt-10 px-4">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">Media Trend Flow</h1>
-          <p className="text-base text-gray-500 text-left font-pretendard">특정 이슈에 대한 보도 변화를 추적해드립니다.</p>
+          <p className="text-base text-gray-500 text-left font-pretendard">특정 이슈에 대한 보도 변화를 추적해드립니다.(해당 보도는 선거 이전에 시행됨을 유의해주시길 바랍니다.)</p>
         </div>
         {/* 중앙 카드 */}
         <div className="w-[1600px] mx-auto mt-12 mb-8 px-4">

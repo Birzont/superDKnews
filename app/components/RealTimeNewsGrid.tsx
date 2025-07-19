@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import NewsCard from './NewsCard'
 import Toast from './RealTimeToast'
@@ -49,16 +49,14 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
   const [articlesMap, setArticlesMap] = useState<{ [issueId: string]: Article[] }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const loader = useRef<HTMLDivElement | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const PAGE_SIZE = 10;
 
   useEffect(() => {
     setIssues([]);
     setArticlesMap({});
-    setPage(1);
-    setHasMore(true);
+    setCurrentPage(1);
     setLoading(true);
   }, [selectedCategory, issuesOverride]);
 
@@ -66,12 +64,12 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
     if (issuesOverride) {
       setIssues(issuesOverride);
       setLoading(false);
-      setHasMore(false);
+      setTotalPages(1);
       return;
     }
-    fetchIssuesAndArticles(page);
+    fetchIssuesAndArticles(currentPage);
     // eslint-disable-next-line
-  }, [selectedCategory, issuesOverride, page]);
+  }, [selectedCategory, issuesOverride, currentPage]);
 
   const fetchIssuesAndArticles = async (pageNum = 1) => {
     setLoading(true);
@@ -79,23 +77,35 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
     try {
       const from = (pageNum - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      // 1. 이슈(요약) 리스트 불러오기 (페이지 단위)
+      
+      // 1. 전체 개수 조회
+      const { count: totalCount } = await supabase
+        .from('issue_table')
+        .select('*', { count: 'exact', head: true })
+        .eq('category', selectedCategory);
+      
+      if (totalCount !== null) {
+        setTotalPages(Math.ceil(totalCount / PAGE_SIZE));
+      }
+
+      // 2. 이슈(요약) 리스트 불러오기 (페이지 단위)
       const { data: issuesData, error: issuesError } = await supabase
         .from('issue_table')
         .select('*')
         .eq('category', selectedCategory)
         .order('created_at', { ascending: false })
         .range(from, to);
+      
       if (issuesError) throw issuesError;
       if (!issuesData || issuesData.length === 0) {
-        setHasMore(false);
+        setIssues([]);
         setLoading(false);
         return;
       }
-      setIssues(prev => pageNum === 1 ? issuesData : [...prev, ...issuesData]);
-      if (issuesData.length < PAGE_SIZE) setHasMore(false);
+      
+      setIssues(issuesData);
 
-      // 2. 각 이슈별로 기사 리스트 불러오기
+      // 3. 각 이슈별로 기사 리스트 불러오기
       const articlesMapTemp: { [issueId: string]: Article[] } = {};
       for (const issue of issuesData) {
         let articleIds: string[] = [];
@@ -122,7 +132,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
           articlesMapTemp[issue.id] = sortedArticles;
         }
       }
-      setArticlesMap(prev => ({ ...prev, ...articlesMapTemp }));
+      setArticlesMap(articlesMapTemp);
     } catch (err) {
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
@@ -130,29 +140,104 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
     }
   };
 
-  // IntersectionObserver로 무한 스크롤 구현
-  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
-    const target = entries[0];
-    if (target.isIntersecting && hasMore && !loading) {
-      setPage(prev => prev + 1);
-    }
-  }, [hasMore, loading]);
-
-  useEffect(() => {
-    if (!loader.current) return;
-    const option = { root: null, rootMargin: '20px', threshold: 0 };
-    const observer = new window.IntersectionObserver(handleObserver, option);
-    observer.observe(loader.current);
-    return () => observer.disconnect();
-  }, [handleObserver]);
-
   const handleRetry = () => {
-    setPage(1);
-    setHasMore(true);
+    setCurrentPage(1);
     setIssues([]);
     setArticlesMap({});
     setError(null);
     setLoading(true);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 페이지네이션 컴포넌트
+  const Pagination = () => {
+    const maxVisiblePages = 5;
+    const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="flex items-center justify-center space-x-2 mt-8">
+        {/* 이전 페이지 버튼 */}
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            currentPage === 1
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          이전
+        </button>
+
+        {/* 첫 페이지 */}
+        {startPage > 1 && (
+          <>
+            <button
+              onClick={() => handlePageChange(1)}
+              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              1
+            </button>
+            {startPage > 2 && (
+              <span className="px-2 text-gray-400">...</span>
+            )}
+          </>
+        )}
+
+        {/* 페이지 번호들 */}
+        {pages.map((pageNum) => (
+          <button
+            key={pageNum}
+            onClick={() => handlePageChange(pageNum)}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              currentPage === pageNum
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
+          >
+            {pageNum}
+          </button>
+        ))}
+
+        {/* 마지막 페이지 */}
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && (
+              <span className="px-2 text-gray-400">...</span>
+            )}
+            <button
+              onClick={() => handlePageChange(totalPages)}
+              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+            >
+              {totalPages}
+            </button>
+          </>
+        )}
+
+        {/* 다음 페이지 버튼 */}
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            currentPage === totalPages
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          다음
+        </button>
+      </div>
+    );
   };
 
   if (loading && issues.length === 0) {
@@ -238,18 +323,16 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
           );
         })}
       </div>
-      <div ref={loader} />
-      {loading && issues.length > 0 && (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">추가 뉴스를 불러오는 중...</span>
-        </div>
-      )}
-      {!hasMore && !loading && (
-        <div className="flex items-center justify-center py-8">
-          <span className="text-gray-400">더 이상 뉴스가 없습니다.</span>
-        </div>
-      )}
+      
+      {/* 페이지네이션 */}
+      {totalPages > 1 && <Pagination />}
+      
+      {/* 페이지 정보 */}
+      <div className="flex items-center justify-center mt-4 text-sm text-gray-500">
+        <span>페이지 {currentPage} / {totalPages}</span>
+        <span className="mx-2">•</span>
+        <span>총 {issues.length}개의 뉴스</span>
+      </div>
     </>
   );
 } 
