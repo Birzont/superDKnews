@@ -42,15 +42,17 @@ interface Article {
 interface RealTimeNewsGridProps {
   selectedCategory: string;
   issuesOverride?: Issue[];
+  searchQuery?: string;
 }
 
-export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: RealTimeNewsGridProps) {
+export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, searchQuery }: RealTimeNewsGridProps) {
   const [issues, setIssues] = useState<Issue[]>([]);
   const [articlesMap, setArticlesMap] = useState<{ [issueId: string]: Article[] }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [allIssues, setAllIssues] = useState<Issue[]>([]); // 모든 이슈를 저장
   const PAGE_SIZE = 10;
 
   useEffect(() => {
@@ -62,82 +64,113 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
 
   useEffect(() => {
     if (issuesOverride) {
+      setAllIssues(issuesOverride);
       setIssues(issuesOverride);
       setLoading(false);
       setTotalPages(1);
       return;
     }
-    fetchIssuesAndArticles(currentPage);
+    fetchAllIssues();
     // eslint-disable-next-line
-  }, [selectedCategory, issuesOverride, currentPage]);
+  }, [selectedCategory, issuesOverride]);
 
-  const fetchIssuesAndArticles = async (pageNum = 1) => {
+  // 검색어가 변경될 때마다 필터링
+  useEffect(() => {
+    if (searchQuery && searchQuery.trim()) {
+      filterIssuesBySearch(searchQuery.trim());
+    } else {
+      // 검색어가 없으면 페이지네이션 적용
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+      setIssues(allIssues.slice(startIndex, endIndex));
+      setTotalPages(Math.ceil(allIssues.length / PAGE_SIZE));
+    }
+  }, [searchQuery, allIssues, currentPage]);
+
+  // 모든 이슈를 가져오는 함수
+  const fetchAllIssues = async () => {
     setLoading(true);
     setError(null);
     try {
-      const from = (pageNum - 1) * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
-      
-      // 1. 전체 개수 조회
-      const { count: totalCount } = await supabase
-        .from('issue_table')
-        .select('*', { count: 'exact', head: true })
-        .eq('category', selectedCategory);
-      
-      if (totalCount !== null) {
-        setTotalPages(Math.ceil(totalCount / PAGE_SIZE));
-      }
-
-      // 2. 이슈(요약) 리스트 불러오기 (페이지 단위)
       const { data: issuesData, error: issuesError } = await supabase
         .from('issue_table')
         .select('*')
         .eq('category', selectedCategory)
-        .order('created_at', { ascending: false })
-        .range(from, to);
+        .order('created_at', { ascending: false });
       
       if (issuesError) throw issuesError;
-      if (!issuesData || issuesData.length === 0) {
-        setIssues([]);
-        setLoading(false);
-        return;
-      }
       
-      setIssues(issuesData);
+      setAllIssues(issuesData || []);
+      
+      // 페이지네이션 적용
+      const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+      setIssues((issuesData || []).slice(startIndex, endIndex));
+      setTotalPages(Math.ceil((issuesData || []).length / PAGE_SIZE));
 
-      // 3. 각 이슈별로 기사 리스트 불러오기
-      const articlesMapTemp: { [issueId: string]: Article[] } = {};
-      for (const issue of issuesData) {
-        let articleIds: string[] = [];
-        try {
-          articleIds = JSON.parse(issue.news_ids);
-        } catch {
-          articleIds = (issue.news_ids || '').split(',').map((id: string) => id.trim());
-        }
-        if (articleIds.length === 0) {
-          articlesMapTemp[issue.id] = [];
-          continue;
-        }
-        const { data: articlesData, error: articlesError } = await supabase
-          .from('articles_table')
-          .select('id, title, body, url, press, press_ideology, created_at, feature_extraction')
-          .in('id', articleIds);
-        if (articlesError) {
-          articlesMapTemp[issue.id] = [];
-        } else {
-          // articleIds 순서대로 정렬
-          const sortedArticles = articleIds
-            .map(id => (articlesData || []).find((a: Article) => a.id === id))
-            .filter(Boolean) as Article[];
-          articlesMapTemp[issue.id] = sortedArticles;
-        }
-      }
-      setArticlesMap(articlesMapTemp);
+      // 각 이슈별로 기사 리스트 불러오기
+      await fetchArticlesForIssues(issuesData || []);
     } catch (err) {
       setError('데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
+  };
+
+  // 검색 필터링 함수
+  const filterIssuesBySearch = (query: string) => {
+    const filtered = allIssues.filter(issue => {
+      const title = issue.related_major_issue?.toLowerCase() || '';
+      const progressiveBody = issue.progressive_body?.toLowerCase() || '';
+      const centristBody = issue.centrist_body?.toLowerCase() || '';
+      const conservativeBody = issue.conservative_body?.toLowerCase() || '';
+      
+      const searchTerm = query.toLowerCase();
+      
+      return title.includes(searchTerm) || 
+             progressiveBody.includes(searchTerm) || 
+             centristBody.includes(searchTerm) || 
+             conservativeBody.includes(searchTerm);
+    });
+    
+    setIssues(filtered);
+    setTotalPages(1); // 검색 결과는 페이지네이션 없이 모두 표시
+  };
+
+  // 각 이슈별로 기사 리스트를 불러오는 함수
+  const fetchArticlesForIssues = async (issuesData: Issue[]) => {
+    const articlesMapTemp: { [issueId: string]: Article[] } = {};
+    
+    for (const issue of issuesData) {
+      let articleIds: string[] = [];
+      try {
+        articleIds = JSON.parse(issue.news_ids);
+      } catch {
+        articleIds = (issue.news_ids || '').split(',').map((id: string) => id.trim());
+      }
+      
+      if (articleIds.length === 0) {
+        articlesMapTemp[issue.id] = [];
+        continue;
+      }
+      
+      const { data: articlesData, error: articlesError } = await supabase
+        .from('articles_table')
+        .select('id, title, body, url, press, press_ideology, created_at, feature_extraction')
+        .in('id', articleIds);
+      
+      if (articlesError) {
+        articlesMapTemp[issue.id] = [];
+      } else {
+        // articleIds 순서대로 정렬
+        const sortedArticles = articleIds
+          .map(id => (articlesData || []).find((a: Article) => a.id === id))
+          .filter(Boolean) as Article[];
+        articlesMapTemp[issue.id] = sortedArticles;
+      }
+    }
+    
+    setArticlesMap(articlesMapTemp);
   };
 
   const handleRetry = () => {
@@ -146,6 +179,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
     setArticlesMap({});
     setError(null);
     setLoading(true);
+    fetchAllIssues();
   };
 
   const handlePageChange = (newPage: number) => {
@@ -269,7 +303,14 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <p className="text-gray-600 mb-4">표시할 뉴스가 없습니다.</p>
+          {searchQuery ? (
+            <>
+              <p className="text-gray-600 mb-2">"{searchQuery}"에 대한 검색 결과가 없습니다.</p>
+              <p className="text-sm text-gray-500 mb-4">다른 키워드로 검색해보세요.</p>
+            </>
+          ) : (
+            <p className="text-gray-600 mb-4">표시할 뉴스가 없습니다.</p>
+          )}
           <button
             onClick={handleRetry}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -325,13 +366,19 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride }: R
       </div>
       
       {/* 페이지네이션 */}
-      {totalPages > 1 && <Pagination />}
+      {totalPages > 1 && !searchQuery && <Pagination />}
       
       {/* 페이지 정보 */}
       <div className="flex items-center justify-center mt-4 text-sm text-gray-500">
-        <span>페이지 {currentPage} / {totalPages}</span>
-        <span className="mx-2">•</span>
-        <span>총 {issues.length}개의 뉴스</span>
+        {searchQuery ? (
+          <span>"{searchQuery}" 검색 결과: {issues.length}개의 뉴스</span>
+        ) : (
+          <>
+            <span>페이지 {currentPage} / {totalPages}</span>
+            <span className="mx-2">•</span>
+            <span>총 {issues.length}개의 뉴스</span>
+          </>
+        )}
       </div>
     </>
   );
