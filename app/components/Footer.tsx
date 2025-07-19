@@ -10,9 +10,6 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 font-pretendard">한누네 주식회사</h3>
             <div className="space-y-2 text-sm text-gray-300 font-pretendard">
               <p>대표자: 김도균</p>
-              <p>사업자등록번호: 123-45-67890</p>
-              <p>통신판매업 신고번호: 2025-서울마포-0000</p>
-              <p>주소: 서울특별시 마포구 와우산로 94 홍익대학교</p>
               <p>대표전화: 010-3863-1636</p>
               <p>이메일: rlaehrbs0515@khu.ac.kr</p>
             </div>
