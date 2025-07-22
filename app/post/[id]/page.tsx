@@ -1,56 +1,19 @@
+"use client"
+
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import RealTimeData from '../../components/RealTimeData'
+import IssueSpecificChatbot from '../../components/IssueSpecificChatbot'
 import dynamic from 'next/dynamic'
+import React, { useEffect, useState } from 'react'
+
 // 동적 import 적용
 const IdeologyStats = dynamic(() => import('../../components/IdeologyStats'), { ssr: false })
 const SummaryTabs = dynamic(() => import('../../components/SummaryTabs'), { ssr: false })
 const ArticleTabs = dynamic(() => import('../../components/ArticleTabs'), { ssr: false })
-import React from 'react'
 
-// 실시간 데이터 업데이트를 위한 설정
-export const revalidate = 0 // 매번 새로운 데이터를 가져옴
-
-// issue_table 테이블에서 특정 요약 이슈를 가져오는 함수로 변경
-async function getSummaryIssueById(id: string) {
-  try {
-    const { data, error } = await supabase
-      .from('issue_table')
-      .select('*')
-      .eq('id', id)
-      .single()
-    if (error) {
-      console.error('Error fetching summary issue:', error)
-      return null
-    }
-    return data
-  } catch (error) {
-    console.error('Error fetching summary issue:', error)
-    return null
-  }
-}
-
-// articles_table 테이블에서 특정 기사들을 가져오는 함수로 변경
-async function getArticles(articleIds: string[]) {
-  try {
-    const { data, error } = await supabase
-      .from('articles_table')
-      .select('*')
-      .in('id', articleIds)
-      .order('created_at', { ascending: false }) // 최신 기사부터 정렬
-    if (error) {
-      console.error('Error fetching articles:', error)
-      return []
-    }
-    return data || []
-  } catch (error) {
-    console.error('Error fetching articles:', error)
-    return []
-  }
-}
-
-// Article 타입 정의 및 사용처 수정
+// Article 타입 정의
 interface Article {
   id: string;
   date: string;
@@ -70,13 +33,83 @@ interface Article {
 }
 
 interface PostPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
-export default async function PostPage({ params }: PostPageProps) {
-  const summaryIssue = await getSummaryIssueById(params.id)
+export default function PostPage({ params }: PostPageProps) {
+  const resolvedParams = React.use(params)
+  const [summaryIssue, setSummaryIssue] = useState<any>(null)
+  const [newspaperArticles, setNewspaperArticles] = useState<Article[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isChatbotOpen, setIsChatbotOpen] = useState(true)
+
+  useEffect(() => {
+    fetchData()
+  }, [resolvedParams.id])
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      // issue_table 테이블에서 특정 요약 이슈를 가져오기
+      const { data: issueData, error: issueError } = await supabase
+        .from('issue_table')
+        .select('*')
+        .eq('id', resolvedParams.id)
+        .single()
+
+      if (issueError) {
+        console.error('Error fetching summary issue:', issueError)
+        setLoading(false)
+        return
+      }
+
+      setSummaryIssue(issueData)
+
+      // news_ids를 파싱하여 개별 기사 ID 배열 생성
+      let articleIds: string[] = []
+      if (issueData.news_ids) {
+        try {
+          // JSON 배열 형태로 저장되어 있다고 가정
+          articleIds = JSON.parse(issueData.news_ids) as string[]
+        } catch {
+          // 쉼표로 구분된 문자열 형태일 수도 있음
+          articleIds = issueData.news_ids.split(',').map((id: string) => id.trim())
+        }
+      }
+
+      // articles_table 테이블에서 특정 기사들을 가져오기
+      if (articleIds.length > 0) {
+        const { data: articlesData, error: articlesError } = await supabase
+          .from('articles_table')
+          .select('*')
+          .in('id', articleIds)
+          .order('created_at', { ascending: false }) // 최신 기사부터 정렬
+
+        if (articlesError) {
+          console.error('Error fetching articles:', articlesError)
+        } else {
+          setNewspaperArticles(articlesData || [])
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">뉴스를 불러오는 중...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!summaryIssue) {
     return (
@@ -90,21 +123,6 @@ export default async function PostPage({ params }: PostPageProps) {
       </div>
     )
   }
-
-  // news_ids를 파싱하여 개별 기사 ID 배열 생성
-  let articleIds: string[] = []
-  if (summaryIssue.news_ids) {
-    try {
-      // JSON 배열 형태로 저장되어 있다고 가정
-      articleIds = JSON.parse(summaryIssue.news_ids) as string[]
-    } catch {
-      // 쉼표로 구분된 문자열 형태일 수도 있음
-      articleIds = summaryIssue.news_ids.split(',').map((id: string) => id.trim())
-    }
-  }
-
-  // 개별 기사들 가져오기
-  const newspaperArticles = await getArticles(articleIds)
 
   // 성향별로 기사 분류
   const progressiveArticles = newspaperArticles.filter(a => a.press_ideology && a.press_ideology <= 3)
@@ -150,8 +168,8 @@ export default async function PostPage({ params }: PostPageProps) {
           홈으로 돌아가기
         </Link>
 
-        {/* 2열 레이아웃 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* 3열 레이아웃 */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* 왼쪽 컬럼: 기사 내용 */}
           <div className="lg:col-span-2 space-y-8">
             {/* 요약 기사 섹션 */}
@@ -169,8 +187,6 @@ export default async function PostPage({ params }: PostPageProps) {
                 <h1 className="text-3xl font-bold text-gray-900 mb-6">
                   {summaryIssue.related_major_issue || '제목 없음'}
                 </h1>
-
-                {/* 대표 성향 블록 제거 */}
 
                 <div className="text-sm text-gray-500 mb-8">
                   {new Date().toLocaleDateString('ko-KR', {
@@ -190,7 +206,6 @@ export default async function PostPage({ params }: PostPageProps) {
                     right={summaryIssue.conservative_title + '\n' + summaryIssue.conservative_body}
                 />
                 </div>
-                {/* 성향별 요약 제목+본문 블록 완전히 삭제 */}
               </div>
             </article>
 
@@ -225,9 +240,21 @@ export default async function PostPage({ params }: PostPageProps) {
             )}
           </div>
 
-          {/* 오른쪽 컬럼: 성향 통계 */}
+          {/* 중간 컬럼: 성향 통계 */}
           <div className="lg:col-span-1">
             <IdeologyStats articles={newspaperArticles} />
+          </div>
+
+          {/* 오른쪽 컬럼: 사안별 챗봇 */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-12 shadow-sm overflow-hidden h-[600px]">
+              <IssueSpecificChatbot 
+                isOpen={isChatbotOpen} 
+                onClose={() => setIsChatbotOpen(false)} 
+                issueData={summaryIssue}
+                articles={newspaperArticles}
+              />
+            </div>
           </div>
         </div>
       </div>

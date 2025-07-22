@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, FileText, Building2, Menu } from 'lucide-react'
+import { Home, FileText, Building2, Menu, ExternalLink } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import Image from 'next/image'
@@ -47,6 +47,12 @@ export default function SideNav() {
       href: '/mediatrendflow',
       icon: FileText,
     },
+    {
+      name: '사전신청',
+      href: 'https://docs.google.com/forms/d/e/1FAIpQLSfgcDFL_rNKWvf_jpSdRsidJ5FSZLBt6L2gyZzTqoS-hFHKJA/viewform?usp=dialog',
+      icon: ExternalLink,
+      external: true,
+    },
   ]
 
   return (
@@ -74,6 +80,23 @@ export default function SideNav() {
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
+              
+              if (item.external) {
+                return (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-12 transition-colors text-gray-700 hover:bg-gray-50"
+                    onClick={() => setOpen(false)}
+                  >
+                    <Icon size={20} />
+                    <span className="font-medium">{item.name}</span>
+                  </a>
+                )
+              }
+              
               return (
                 <Link
                   key={item.name}

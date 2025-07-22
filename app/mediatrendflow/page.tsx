@@ -1,5 +1,8 @@
+"use client"
+
 import React from "react";
 import SideNav from '../components/SideNav';
+import BackButton from '../components/BackButton';
 
 const MediaTrendFlowPage = () => {
   return (
@@ -8,6 +11,9 @@ const MediaTrendFlowPage = () => {
       <main className="flex-1 overflow-auto bg-gradient-to-b from-gray-100 to-white relative">
         {/* 상단 헤더 */}
         <div className="w-[1600px] mx-auto pt-10 px-4">
+          {/* 뒤로가기 버튼 */}
+          <BackButton />
+
           <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">이슈별 흐름 아카이브</h1>
           <p className="text-base text-gray-500 text-left font-pretendard">시간 흐름에 따라 언론이 어떻게 이슈를 다뤄왔는지 추적해보세요.(해당 보도는 선거 이전에 시행됨을 유의해주시길 바랍니다.)</p>
         </div>

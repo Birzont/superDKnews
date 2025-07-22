@@ -2,6 +2,7 @@
 
 import SideNav from '../components/SideNav'
 import RealTimeNewsGrid from '../components/RealTimeNewsGrid'
+import BackButton from '../components/BackButton'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
@@ -14,6 +15,33 @@ export default function ControversialIssuePage() {
 
   useEffect(() => {
     fetchControversialIssues()
+  }, [])
+
+  // 브라우저 히스토리 관리
+  useEffect(() => {
+    const currentUrl = new URL(window.location.href)
+    if (searchQuery) {
+      currentUrl.searchParams.set('search', searchQuery)
+    }
+    
+    window.history.replaceState(
+      { 
+        search: searchQuery,
+        timestamp: Date.now()
+      }, 
+      '', 
+      currentUrl.toString()
+    )
+  }, [searchQuery])
+
+  // 브라우저 뒤로가기/앞으로가기 처리
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // 필요한 경우 상태 복원 로직 추가
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   const fetchControversialIssues = async () => {
@@ -50,33 +78,33 @@ export default function ControversialIssuePage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <SideNav />
-      <div className="flex-1 flex flex-col">
-        {/* 메인 콘텐츠 */}
-        <div className="flex-1 p-6">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">국내 쟁점 사안</h1>
-            <p className="text-base text-gray-500 text-left font-pretendard">
-              {searchQuery 
-                ? `"${searchQuery}" 검색 결과 - 한국 사회의 가장 뜨거운 논쟁 이슈`
-                : "한국 사회의 가장 뜨거운 논쟁 이슈를 다양한 시각으로 살펴봅니다."
-              }
-            </p>
-          </div>
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">뉴스를 불러오는 중...</span>
-            </div>
-          ) : (
-            <RealTimeNewsGrid 
-              selectedCategory={""} 
-              issuesOverride={issues} 
-              searchQuery={searchQuery}
-            />
-          )}
+      <div className="p-6">
+        {/* 뒤로가기 버튼 */}
+        <BackButton />
+
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">국내 쟁점 사안</h1>
+          <p className="text-base text-gray-500 text-left font-pretendard">
+            {searchQuery 
+              ? `"${searchQuery}" 검색 결과 - 한국 사회의 가장 뜨거운 논쟁 이슈`
+              : "한국 사회의 가장 뜨거운 논쟁 이슈를 다양한 시각으로 살펴봅니다."
+            }
+          </p>
         </div>
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <span className="ml-3 text-gray-600">뉴스를 불러오는 중...</span>
+          </div>
+        ) : (
+          <RealTimeNewsGrid 
+            selectedCategory={""} 
+            issuesOverride={issues} 
+            searchQuery={searchQuery}
+          />
+        )}
       </div>
     </div>
   )
