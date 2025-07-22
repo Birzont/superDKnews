@@ -15,10 +15,32 @@ const MediaTrendFlowPage = () => {
         </div>
         {/* 중앙 카드 */}
         <div className="w-[1600px] mx-auto mt-12 mb-8 px-4">
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-semibold text-gray-700 mb-4">준비 중입니다</h2>
-              <p className="text-gray-500">이슈별 흐름 아카이브 기능이 곧 제공될 예정입니다.</p>
+          <div className="bg-white rounded-3xl shadow-lg p-8 md:p-12 flex flex-col items-center min-h-[600px] w-full">
+            <div className="w-full flex flex-col gap-8 mt-8">
+              <a
+                href="https://hukuacaive1.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold py-6 rounded-2xl shadow transition-colors duration-200 text-center"
+              >
+                후쿠시마 오염수 방류 보도 추적
+              </a>
+              <a
+                href="https://fundacaive2.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold py-6 rounded-2xl shadow transition-colors duration-200 text-center"
+              >
+                기본소득 보도 추적
+              </a>
+              <a
+                href="https://wonjaacaive3.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold py-6 rounded-2xl shadow transition-colors duration-200 text-center"
+              >
+                원자력 발전소 보도 추적
+              </a>
             </div>
           </div>
         </div>
