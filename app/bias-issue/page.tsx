@@ -27,23 +27,38 @@ export default function BiasIssuePage() {
 
   useEffect(() => {
     fetchBiasIssues()
-  }, [])
+  }, [selectedCategory])
 
   const fetchBiasIssues = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('issues')
-        .select('*')
-        .eq('is_bias_issue', true)
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setIssues(data || [])
-    } catch (error) {
-      console.error('Error fetching bias issues:', error)
-    } finally {
-      setLoading(false)
-    }
+    setLoading(true)
+    // article_count 대비 보수 또는 진보 비율이 70% 이상인 이슈만
+    const { data, error } = await supabase
+      .from('issue_table')
+      .select('*')
+      .eq('category', selectedCategory)
+      .order('created_at', { ascending: false })
+    // 필터링: conservative_count/article_count >= 0.7 또는 progressive_count/article_count >= 0.7
+    const filtered = (data || []).filter(issue => {
+      const total = issue.article_count || 0
+      if (!total) return false
+      const cons = issue.conservative_count || 0
+      const prog = issue.progressive_count || 0
+      // 기존 조건: 보수 또는 진보 비율이 70% 이상
+      // 추가 조건: 진보가 0이거나 보수가 0인 경우도 포함
+      return cons / total >= 0.7 || prog / total >= 0.7 || cons === 0 || prog === 0
+    })
+    
+    // 보수 %가 높은 순으로 정렬
+    const sorted = filtered.sort((a, b) => {
+      const aTotal = a.article_count || 0
+      const bTotal = b.article_count || 0
+      const aConsRatio = aTotal > 0 ? (a.conservative_count || 0) / aTotal : 0
+      const bConsRatio = bTotal > 0 ? (b.conservative_count || 0) / bTotal : 0
+      return bConsRatio - aConsRatio // 내림차순 정렬 (높은 순)
+    })
+    
+    setIssues(sorted)
+    setLoading(false)
   }
 
   return (
@@ -77,7 +92,7 @@ export default function BiasIssuePage() {
             {/* 뉴스 그리드 */}
             <RealTimeNewsGrid 
               selectedCategory={selectedCategory} 
-              issuesOverride={issues.filter(issue => issue.category === selectedCategory)}
+              issuesOverride={issues}
               searchQuery={searchQuery}
             />
           </div>
