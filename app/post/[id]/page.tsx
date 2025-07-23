@@ -39,19 +39,43 @@ interface PostPageProps {
 }
 
 export default function PostPage({ params }: PostPageProps) {
-  const resolvedParams = React.use(params)
+  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null)
   const [summaryIssue, setSummaryIssue] = useState<any>(null)
   const [newspaperArticles, setNewspaperArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isChatbotOpen, setIsChatbotOpen] = useState(true)
 
+  // params를 안전하게 처리
   useEffect(() => {
-    fetchData()
-  }, [resolvedParams.id])
+    const resolveParams = async () => {
+      try {
+        const resolved = await params
+        setResolvedParams(resolved)
+      } catch (err) {
+        console.error('Error resolving params:', err)
+        setError('페이지 매개변수를 처리할 수 없습니다.')
+        setLoading(false)
+      }
+    }
+    resolveParams()
+  }, [params])
+
+  useEffect(() => {
+    if (resolvedParams?.id) {
+      fetchData()
+    }
+  }, [resolvedParams?.id])
 
   const fetchData = async () => {
+    if (!resolvedParams?.id) return
+    
     setLoading(true)
+    setError(null)
+    
     try {
+      console.log('Fetching issue with ID:', resolvedParams.id)
+      
       // issue_table 테이블에서 특정 요약 이슈를 가져오기
       const { data: issueData, error: issueError } = await supabase
         .from('issue_table')
@@ -61,10 +85,18 @@ export default function PostPage({ params }: PostPageProps) {
 
       if (issueError) {
         console.error('Error fetching summary issue:', issueError)
+        setError('요약 이슈를 불러올 수 없습니다.')
         setLoading(false)
         return
       }
 
+      if (!issueData) {
+        setError('해당 이슈를 찾을 수 없습니다.')
+        setLoading(false)
+        return
+      }
+
+      console.log('Issue data:', issueData)
       setSummaryIssue(issueData)
 
       // news_ids를 파싱하여 개별 기사 ID 배열 생성
@@ -72,12 +104,22 @@ export default function PostPage({ params }: PostPageProps) {
       if (issueData.news_ids) {
         try {
           // JSON 배열 형태로 저장되어 있다고 가정
-          articleIds = JSON.parse(issueData.news_ids) as string[]
-        } catch {
-          // 쉼표로 구분된 문자열 형태일 수도 있음
-          articleIds = issueData.news_ids.split(',').map((id: string) => id.trim())
+          if (typeof issueData.news_ids === 'string') {
+            if (issueData.news_ids.startsWith('[')) {
+              articleIds = JSON.parse(issueData.news_ids) as string[]
+            } else {
+              // 쉼표로 구분된 문자열 형태일 수도 있음
+              articleIds = issueData.news_ids.split(',').map((id: any) => id.trim()).filter((id: any) => id.length > 0)
+            }
+          }
+        } catch (parseError) {
+          console.error('Error parsing news_ids:', parseError)
+          // 파싱 실패 시 빈 배열로 처리
+          articleIds = []
         }
       }
+
+      console.log('Article IDs to fetch:', articleIds)
 
       // articles_table 테이블에서 특정 기사들을 가져오기
       if (articleIds.length > 0) {
@@ -89,12 +131,18 @@ export default function PostPage({ params }: PostPageProps) {
 
         if (articlesError) {
           console.error('Error fetching articles:', articlesError)
+          setError('기사들을 불러올 수 없습니다.')
         } else {
+          console.log('Articles data:', articlesData)
           setNewspaperArticles(articlesData || [])
         }
+      } else {
+        console.log('No article IDs found, setting empty array')
+        setNewspaperArticles([])
       }
     } catch (error) {
       console.error('Error fetching data:', error)
+      setError('데이터를 불러오는 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -106,6 +154,20 @@ export default function PostPage({ params }: PostPageProps) {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">뉴스를 불러오는 중...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">오류가 발생했습니다</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Link href="/" className="text-blue-600 hover:underline">
+            홈으로 돌아가기
+          </Link>
         </div>
       </div>
     )
