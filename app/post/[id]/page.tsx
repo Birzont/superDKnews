@@ -221,36 +221,36 @@ export default function PostPage({ params }: PostPageProps) {
       {/* 실시간 데이터 새로고침 컴포넌트 */}
       <RealTimeData refreshInterval={15000} /> {/* 15초마다 새로고침 */}
       
-      <div className="max-w-7xl mx-auto p-8">
+      <div className="max-w-7xl mx-auto p-4 md:p-8">
         <Link 
           href="/" 
-          className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-8"
+          className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 md:mb-8"
         >
           <ArrowLeft size={20} className="mr-2" />
           홈으로 돌아가기
         </Link>
 
-        {/* 3열 레이아웃 */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* 반응형 레이아웃 */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-8">
           {/* 왼쪽 컬럼: 기사 내용 */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-4 md:space-y-8">
             {/* 요약 기사 섹션 */}
-            <article className="bg-white rounded-12 shadow-sm overflow-hidden">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-sm font-medium text-gray-600 bg-gray-100 px-4 py-2 rounded-full">
+            <article className="bg-white rounded-xl md:rounded-12 shadow-sm overflow-hidden">
+              <div className="p-4 md:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 md:mb-6">
+                  <span className="text-xs md:text-sm font-medium text-gray-600 bg-gray-100 px-3 md:px-4 py-2 rounded-full">
                     뉴스 요약
                   </span>
-                  <span className="text-sm font-medium text-gray-600 bg-blue-100 px-3 py-2 rounded-full">
+                  <span className="text-xs md:text-sm font-medium text-gray-600 bg-blue-100 px-3 py-2 rounded-full">
                     {summaryIssue.article_count || 0}개 기사 포함
                   </span>
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-900 mb-6">
+                <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-4 md:mb-6">
                   {summaryIssue.related_major_issue || '제목 없음'}
                 </h1>
 
-                <div className="text-sm text-gray-500 mb-8">
+                <div className="text-xs md:text-sm text-gray-500 mb-6 md:mb-8">
                   {new Date().toLocaleDateString('ko-KR', {
                     year: 'numeric',
                     month: 'long',
@@ -261,7 +261,7 @@ export default function PostPage({ params }: PostPageProps) {
                 </div>
 
                 {/* 성향별 요약 탭 */}
-                <div className="mb-6">
+                <div className="mb-4 md:mb-6">
                 <SummaryTabs
                     left={summaryIssue.progressive_title + '\n' + summaryIssue.progressive_body}
                     center={summaryIssue.centrist_title + '\n' + summaryIssue.centrist_body}
@@ -273,16 +273,16 @@ export default function PostPage({ params }: PostPageProps) {
 
             {/* 포함된 개별 기사들 섹션 */}
             {newspaperArticles.length > 0 && (
-              <div className="bg-white rounded-12 shadow-sm overflow-hidden">
-                <div className="p-8 border-b border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              <div className="bg-white rounded-xl md:rounded-12 shadow-sm overflow-hidden">
+                <div className="p-4 md:p-8 border-b border-gray-200">
+                  <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2 md:mb-4">
                     포함된 기사들 ({newspaperArticles.length}개)
                   </h2>
-                  <p className="text-gray-600">
+                  <p className="text-sm md:text-base text-gray-600">
                     이 요약에 포함된 개별 뉴스 기사들을 확인하세요.
                   </p>
                 </div>
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                   <ArticleTabs
                     progressive={progressiveArticles}
                     moderate={moderateArticles}
@@ -294,8 +294,8 @@ export default function PostPage({ params }: PostPageProps) {
 
             {/* 기사가 없는 경우 */}
             {newspaperArticles.length === 0 && summaryIssue.article_count && summaryIssue.article_count > 0 && (
-              <div className="bg-white rounded-12 shadow-sm p-8 text-center">
-                <p className="text-gray-600">
+              <div className="bg-white rounded-xl md:rounded-12 shadow-sm p-4 md:p-8 text-center">
+                <p className="text-sm md:text-base text-gray-600">
                   포함된 기사들을 불러올 수 없습니다.
                 </p>
               </div>
@@ -309,7 +309,7 @@ export default function PostPage({ params }: PostPageProps) {
 
           {/* 오른쪽 컬럼: 사안별 챗봇 */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-12 shadow-sm overflow-hidden h-[600px]">
+            <div className="bg-white rounded-xl md:rounded-12 shadow-sm overflow-hidden h-[400px] md:h-[600px]">
               <IssueSpecificChatbot 
                 isOpen={isChatbotOpen} 
                 onClose={() => setIsChatbotOpen(false)} 

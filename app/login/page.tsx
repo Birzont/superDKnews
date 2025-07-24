@@ -24,15 +24,15 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow">
-        <h2 className="text-2xl font-bold text-center">로그인</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="w-full max-w-md p-6 md:p-8 space-y-6 bg-white rounded-xl md:rounded-lg shadow-lg">
+        <h2 className="text-xl md:text-2xl font-bold text-center">로그인</h2>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block mb-1 text-sm font-medium">이메일</label>
+            <label className="block mb-2 text-sm font-medium">이메일</label>
             <input
               type="email"
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="이메일을 입력하세요"
               required
               value={email}
@@ -40,17 +40,21 @@ const LoginPage = () => {
             />
           </div>
           <div>
-            <label className="block mb-1 text-sm font-medium">비밀번호</label>
+            <label className="block mb-2 text-sm font-medium">비밀번호</label>
             <input
               type="password"
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="비밀번호를 입력하세요"
               required
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
           </div>
-          <button type="submit" className="w-full py-2 font-semibold text-white bg-blue-600 rounded hover:bg-blue-700" disabled={loading}>
+          <button 
+            type="submit" 
+            className="w-full py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200" 
+            disabled={loading}
+          >
             {loading ? "로그인 중..." : "로그인"}
           </button>
         </form>

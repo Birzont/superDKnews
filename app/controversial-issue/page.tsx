@@ -63,13 +63,13 @@ export default function ControversialIssuePage() {
       <SideNav />
       <main className="flex-1 overflow-auto bg-gradient-to-b from-gray-100 to-white relative">
         {/* 상단 헤더 */}
-        <div className="w-[1600px] mx-auto pt-10 px-4">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">국내 쟁점 사안</h1>
-          <p className="text-base text-gray-500 text-left font-pretendard">국내에서 논란이 되는 주요 사안들을 확인하세요.</p>
+        <div className="w-full max-w-7xl mx-auto pt-4 md:pt-10 px-4 md:px-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 text-left font-pretendard">국내 쟁점 사안</h1>
+          <p className="text-sm md:text-base text-gray-500 text-left font-pretendard">국내에서 논란이 되는 주요 사안들을 확인하세요.</p>
         </div>
         {/* 중앙 카드 */}
-        <div className="w-[1600px] mx-auto mt-12 mb-8 px-4">
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="w-full max-w-7xl mx-auto mt-6 md:mt-12 mb-8 px-4 md:px-6">
+          <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-4 md:p-8">
             {/* 뉴스 그리드 */}
             <RealTimeNewsGrid 
               selectedCategory=""
