@@ -209,7 +209,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
 
   // 페이지네이션 컴포넌트
   const Pagination = () => {
-    const maxVisiblePages = 5;
+    const maxVisiblePages = window.innerWidth < 640 ? 3 : 5; // 모바일에서는 3개만 표시
     const startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
     
@@ -219,12 +219,12 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
     }
 
     return (
-      <div className="flex items-center justify-center space-x-2 mt-8">
+      <div className="flex items-center justify-center space-x-1 sm:space-x-2 mt-6 sm:mt-8 px-4">
         {/* 이전 페이지 버튼 */}
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
             currentPage === 1
               ? 'text-gray-400 cursor-not-allowed'
               : 'text-gray-700 hover:bg-gray-100'
@@ -238,12 +238,12 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
           <>
             <button
               onClick={() => handlePageChange(1)}
-              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              className="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
             >
               1
             </button>
             {startPage > 2 && (
-              <span className="px-2 text-gray-400">...</span>
+              <span className="px-1 sm:px-2 text-gray-400 text-xs sm:text-sm">...</span>
             )}
           </>
         )}
@@ -253,7 +253,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
           <button
             key={pageNum}
             onClick={() => handlePageChange(pageNum)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
               currentPage === pageNum
                 ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-100'
@@ -267,11 +267,11 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
         {endPage < totalPages && (
           <>
             {endPage < totalPages - 1 && (
-              <span className="px-2 text-gray-400">...</span>
+              <span className="px-1 sm:px-2 text-gray-400 text-xs sm:text-sm">...</span>
             )}
             <button
               onClick={() => handlePageChange(totalPages)}
-              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+              className="px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
             >
               {totalPages}
             </button>
@@ -282,7 +282,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`px-2 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
             currentPage === totalPages
               ? 'text-gray-400 cursor-not-allowed'
               : 'text-gray-700 hover:bg-gray-100'
@@ -344,7 +344,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
         {issues.map((issue) => {
           const articles = articlesMap[issue.id] || [];
           // ideologyStats 계산
@@ -389,7 +389,7 @@ export default function RealTimeNewsGrid({ selectedCategory, issuesOverride, sea
       {totalPages > 1 && !searchQuery && <Pagination />}
       
       {/* 페이지 정보 */}
-      <div className="flex items-center justify-center mt-4 text-sm text-gray-500">
+      <div className="flex items-center justify-center mt-4 text-xs sm:text-sm text-gray-500 px-4">
         {searchQuery ? (
           <span>"{searchQuery}" 검색 결과: {issues.length}개의 뉴스</span>
         ) : (
