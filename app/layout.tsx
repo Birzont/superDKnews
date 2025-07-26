@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import AuthStatus from "./components/AuthStatus";
 import Footer from "./components/Footer";
-import PWAInstallPrompt from "./components/PWAInstallPrompt";
+// import PWAInstallPrompt from "./components/PWAInstallPrompt";
 import PWAStatus from "./components/PWAStatus";
-import PWAManualInstall from "./components/PWAManualInstall";
-import PWAFloatingInstall from "./components/PWAFloatingInstall";
+// import PWAManualInstall from "./components/PWAManualInstall";
+// import PWAFloatingInstall from "./components/PWAFloatingInstall";
 
 export const metadata: Metadata = {
   title: 'DK News Super - 뉴스 리터러시 플랫폼',
@@ -49,10 +49,10 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <AuthStatus />
-        <PWAInstallPrompt />
+        {/* <PWAInstallPrompt /> */}
         <PWAStatus />
-        <PWAManualInstall />
-        <PWAFloatingInstall />
+        {/* <PWAManualInstall /> */}
+        {/* <PWAFloatingInstall /> */}
         {children}
         <Footer />
       </body>
